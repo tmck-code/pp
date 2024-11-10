@@ -99,6 +99,38 @@ def test6():
             row = reversed(row)
         yield from row
 
+def join_faces(faces):
+    return list(itertools.chain(*faces))
+
+def print_cube(faces):
+    empty_face = [[' '*6 for _ in range(6)] for _ in range(6)]
+
+    flattened = [
+        (empty_face, faces[0], empty_face),
+        (faces[1], faces[2], faces[3]),
+        (empty_face, faces[4], empty_face),
+        (empty_face, faces[5], empty_face),
+    ]
+    for faces in flattened:
+        for row in zip(*faces):
+            print(''.join(list(itertools.chain(*row)))+RESET)
+
+
+
+def test7():
+    faces = []
+    g = list(batched(
+        [colour_bg(f'{n:-3d}   ', n)+RESET for n in range(16, 232)],
+        6
+    ))
+    for i in range(6):
+        row = list(itertools.islice(g, i, 36, 6))
+        if i % 2 != 0:
+            row = list(reversed(row))
+        faces.append(row)
+
+    print_cube(faces)
+
 rainbow1 = [
     ( 16, 52, 88,124,160,196,203,210,217,224,231),
     ( 16, 52, 88,124,160,202,209,216,223,230,231),
@@ -188,3 +220,4 @@ print_grid([
 ])
 print('-'*80)
 
+test7()
