@@ -159,6 +159,74 @@ def test7():
     print_cube(faces)
 
 
+def rgb_cell(r, g, b):
+    return colour_bg(f'{16 + 36*r:3d},{6*g:3d},{b:3d}', 16 + 36*r + 6*g + b)+RESET
+
+
+def test8():
+    '''
+    16-231:  6 × 6 × 6 cube (216 colors): 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5)
+    '''
+    seq = []
+    print('↓ r →  b |g')
+    for r in range(6):
+        seq.append('\n')
+        for g in range(6):
+            seq.append('|')
+            for b in range(6):
+                seq.append(rgb_cell(r, g, b))
+    print(''.join(seq))
+    seq = []
+    print('↓ r →  g |b')
+    for r in range(6):
+        seq.append('\n')
+        for b in range(6):
+            seq.append('|')
+            for g in range(6):
+                seq.append(rgb_cell(r, g, b))
+    print(''.join(seq))
+
+    seq = []
+    print('↓ g →  b |r')
+    for b in range(6):
+        seq.append('\n')
+        for g in range(6):
+            seq.append('|')
+            for r in range(6):
+                seq.append(rgb_cell(r, g, b))
+    print(''.join(seq))
+    seq = []
+    print('↓ g →  r |b')
+    for b in range(6):
+        seq.append('\n')
+        for r in range(6):
+            seq.append('|')
+            for g in range(6):
+                seq.append(rgb_cell(r, g, b))
+    print(''.join(seq))
+
+    seq = []
+    print('↓ b →  r |g')
+    for g in range(6):
+        seq.append('\n')
+        for b in range(6):
+            seq.append('|')
+            for r in range(6):
+                seq.append(rgb_cell(r, g, b))
+
+    print(''.join(seq))
+
+    seq = []
+    print('↓ b →  g |r')
+    for g in range(6):
+        seq.append('\n')
+        for r in range(6):
+            seq.append('|')
+            for b in range(6):
+                seq.append(rgb_cell(r, g, b))
+    print(''.join(seq))
+
+
 rainbow1 = [
     (16, 52, 88, 124, 160, 196, 203, 210, 217, 224, 231),
     (16, 52, 88, 124, 160, 202, 209, 216, 223, 230, 231),
@@ -251,3 +319,4 @@ print_grid([
 print('-'*80)
 
 test7()
+test8()
