@@ -172,7 +172,7 @@ def test8():
     for r in range(6):
         seq.append('\n')
         for g in range(6):
-            seq.append('|')
+            seq.append('\n')
             for b in range(6):
                 seq.append(rgb_cell(r, g, b))
     print(''.join(seq))
@@ -181,7 +181,7 @@ def test8():
     for r in range(6):
         seq.append('\n')
         for b in range(6):
-            seq.append('|')
+            seq.append('\n')
             for g in range(6):
                 seq.append(rgb_cell(r, g, b))
     print(''.join(seq))
@@ -191,7 +191,7 @@ def test8():
     for b in range(6):
         seq.append('\n')
         for g in range(6):
-            seq.append('|')
+            seq.append('\n')
             for r in range(6):
                 seq.append(rgb_cell(r, g, b))
     print(''.join(seq))
@@ -200,7 +200,7 @@ def test8():
     for b in range(6):
         seq.append('\n')
         for r in range(6):
-            seq.append('|')
+            seq.append('\n')
             for g in range(6):
                 seq.append(rgb_cell(r, g, b))
     print(''.join(seq))
@@ -210,7 +210,7 @@ def test8():
     for g in range(6):
         seq.append('\n')
         for b in range(6):
-            seq.append('|')
+            seq.append('\n')
             for r in range(6):
                 seq.append(rgb_cell(r, g, b))
 
@@ -221,7 +221,7 @@ def test8():
     for g in range(6):
         seq.append('\n')
         for r in range(6):
-            seq.append('|')
+            seq.append('\n')
             for b in range(6):
                 seq.append(rgb_cell(r, g, b))
     print(''.join(seq))
