@@ -107,7 +107,7 @@ def print_cube(faces):
 
     flattened = [
         (empty_face, faces[0], empty_face),
-        (faces[1], faces[2], faces[3]),
+        (rot90(faces[1],2), rot90(faces[2],2), faces[3]),
         (empty_face, faces[4], empty_face),
         (empty_face, faces[5], empty_face),
     ]
@@ -115,6 +115,10 @@ def print_cube(faces):
         for row in zip(*faces):
             print(''.join(list(itertools.chain(*row)))+RESET)
 
+def rot90(face, n=1):
+    for _ in range(n):
+        face = list(zip(*face[::-1]))
+    return face
 
 
 def test7():
@@ -125,8 +129,8 @@ def test7():
     ))
     for i in range(6):
         row = list(itertools.islice(g, i, 36, 6))
-        if i % 2 != 0:
-            row = list(reversed(row))
+        # if i % 2 != 0:
+        #     row = list(reversed(row))
         faces.append(row)
 
     print_cube(faces)
