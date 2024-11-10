@@ -167,64 +167,74 @@ def test8():
     '''
     16-231:  6 × 6 × 6 cube (216 colors): 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5)
     '''
-    seq = []
-    print('↓ r →  b |g')
-    for r in range(6):
-        seq.append('\n')
-        for g in range(6):
-            seq.append('\n')
-            for b in range(6):
-                seq.append(rgb_cell(r, g, b))
-    print(''.join(seq))
+    all_seqs = []
+
     seq = []
     print('↓ r →  g |b')
     for r in range(6):
-        seq.append('\n')
         for b in range(6):
-            seq.append('\n')
+            row = []
             for g in range(6):
-                seq.append(rgb_cell(r, g, b))
-    print(''.join(seq))
-
-    seq = []
-    print('↓ g →  b |r')
-    for b in range(6):
-        seq.append('\n')
-        for g in range(6):
-            seq.append('\n')
-            for r in range(6):
-                seq.append(rgb_cell(r, g, b))
-    print(''.join(seq))
-    seq = []
-    print('↓ g →  r |b')
-    for b in range(6):
-        seq.append('\n')
-        for r in range(6):
-            seq.append('\n')
-            for g in range(6):
-                seq.append(rgb_cell(r, g, b))
-    print(''.join(seq))
+                row.append(rgb_cell(r, g, b))
+            seq.append(''.join(row))
+    all_seqs.append(seq)
+    print('\n'.join(seq))
 
     seq = []
     print('↓ b →  r |g')
     for g in range(6):
-        seq.append('\n')
         for b in range(6):
-            seq.append('\n')
+            row = []
             for r in range(6):
-                seq.append(rgb_cell(r, g, b))
+                row.append(rgb_cell(r, g, b))
+            seq.append(''.join(row))
+    all_seqs.append(seq)
+    print('\n'.join(seq))
 
-    print(''.join(seq))
+
+    seq = []
+    print('↓ r →  b |g')
+    for r in range(6):
+        for g in range(6):
+            row = []
+            for b in range(6):
+                row.append(rgb_cell(r, g, b))
+            seq.append(''.join(row))
+    all_seqs.append(seq)
+    print('\n'.join(seq))
+
+    seq = []
+    print('↓ g →  b |r')
+    for b in range(6):
+        for g in range(6):
+            row = []
+            for r in range(6):
+                row.append(rgb_cell(r, g, b))
+            seq.append(''.join(row))
+    all_seqs.append(seq)
+    print('\n'.join(seq))
+    seq = []
+    print('↓ g →  r |b')
+    for b in range(6):
+        for r in range(6):
+            row = []
+            for g in range(6):
+                row.append(rgb_cell(r, g, b))
+            seq.append(''.join(row))
+    all_seqs.append(seq)
+    print('\n'.join(seq))
+
 
     seq = []
     print('↓ b →  g |r')
     for g in range(6):
-        seq.append('\n')
         for r in range(6):
-            seq.append('\n')
+            row = []
             for b in range(6):
-                seq.append(rgb_cell(r, g, b))
-    print(''.join(seq))
+                row.append(rgb_cell(r, g, b))
+            seq.append(''.join(row))
+    all_seqs.append(seq)
+    print('\n'.join(seq))
 
 
 rainbow1 = [
