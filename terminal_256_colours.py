@@ -114,8 +114,13 @@ def test6():
 def join_faces(faces):
     return list(itertools.chain(*faces))
 
+def reverse(face):
+    return list(reversed(face))
 
-def rot90(face, n=1):
+
+def rot90(face, n=1, flip=False):
+    if flip:
+        face = reverse(face)
     for _ in range(n):
         face = list(zip(*face[::-1]))
     return face
@@ -194,21 +199,23 @@ def print_rgb_faces(faces, padding_top=1, padding_bottom=1):
 
 def print_planar_rgb_cube(faces):
     # print the planar form of the cube, e.g.
-    #      5
-    #  3 0 1 2
-    #    4
+    #     0
+    #   1 2
+    #     3 4
+    #     5
     empty_face = []
     for _ in range(6):
-        empty_face.append(' '*24)
+        empty_face.append(' '*8*6)
 
     string_faces = []
     for face in faces:
         string_faces.append([rgb_row(row) for row in face])
 
     flattened = [
-        (empty_face, empty_face, string_faces[5], empty_face),
-        (string_faces[3], string_faces[0], string_faces[1], string_faces[2]),
-        (empty_face, empty_face, string_faces[4], empty_face),
+        (empty_face, string_faces[0], empty_face),
+        (string_faces[1], string_faces[2], empty_face),
+        (empty_face, string_faces[3], string_faces[4]),
+        (empty_face, string_faces[5], empty_face),
     ]
 
     for faces in flattened:
@@ -309,12 +316,14 @@ def test8():
     print('planar faces', '-'*80, sep='\n')
 
     planar_faces = [
+        rot90(all_seqs[('b','g','r')][5], 3),
+
+        rot90(all_seqs[('g', 'b', 'r')][0], 2),
+        rot90(all_seqs[('r', 'g', 'b')][0], 3),
         all_seqs[('r', 'b', 'g')][0],
-        all_seqs[('r', 'b', 'g')][5],
-        all_seqs[('g', 'b', 'r')][5],
-        all_seqs[('r', 'g', 'b')][0],
-        all_seqs[('g', 'b', 'r')][0],
-        all_seqs[('r', 'g', 'b')][5],
+
+        rot90(all_seqs[('g', 'b', 'r')][5], 1, flip=True),
+        rot90(all_seqs[('r', 'g', 'b')][5], 1, flip=True),
     ]
     print_rgb_faces(planar_faces, padding_top=0)
     print_planar_rgb_cube(planar_faces)
