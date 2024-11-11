@@ -186,85 +186,138 @@ def print_rgb_face(seq, padding_top=1, padding_bottom=1):
             print(''.join(rgb_cell(*cell, pad=True) for cell in row))
 
 
+def print_rgb_faces(faces, padding_top=1, padding_bottom=1):
+    for face in faces:
+        print_rgb_face(face, padding_top, padding_bottom)
+        print('-'*40)
+
+
+def print_planar_rgb_cube(faces):
+    # print the planar form of the cube, e.g.
+    #      5
+    #  3 0 1 2
+    #    4
+    empty_face = []
+    for _ in range(6):
+        empty_face.append(' '*24)
+
+    string_faces = []
+    for face in faces:
+        string_faces.append([rgb_row(row) for row in face])
+
+    flattened = [
+        (empty_face, empty_face, string_faces[5], empty_face),
+        (string_faces[3], string_faces[0], string_faces[1], string_faces[2]),
+        (empty_face, empty_face, string_faces[4], empty_face),
+    ]
+
+    for faces in flattened:
+        for row in zip(*faces):
+            print(''.join(list(itertools.chain(*row)))+RESET)
+
+
 def test8():
     '''
     16-231:  6 × 6 × 6 cube (216 colors): 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5)
     '''
-    all_seqs = []
+    all_seqs = {}
 
     seq = []
-    # print('↓ r →  g |b')
     for r in range(6):
+        face = []
         for b in range(6):
             row = []
             for g in range(6):
                 row.append((r, g, b))
-            seq.append(row)
-    all_seqs.append(seq)
+            face.append(row)
+        seq.append(face)
+    all_seqs[('r', 'b', 'g')] = seq
 
     seq = []
     # # print('↓ b →  r |g')
     for g in range(6):
+        face = []
         for b in range(6):
             row = []
             for r in range(6):
                 row.append((r, g, b))
-            seq.append(row)
-    all_seqs.append(seq)
+            face.append(row)
+        seq.append(face)
+    all_seqs[('g', 'b', 'r')] = seq
 
     seq = []
-    # print('↓ r →  b |g')
     for r in range(6):
+        face = []
         for g in range(6):
             row = []
             for b in range(6):
                 row.append((r, g, b))
-            seq.append(row)
-    all_seqs.append(seq)
+            face.append(row)
+        seq.append(face)
+    all_seqs[('r', 'g', 'b')] = seq
 
     seq = []
-    # print('↓ g →  b |r')
     for b in range(6):
+        face = []
         for g in range(6):
             row = []
             for r in range(6):
                 row.append((r, g, b))
-            seq.append(row)
-    all_seqs.append(seq)
+            face.append(row)
+        seq.append(face)
+    all_seqs[('b', 'g', 'r')] = seq
 
     seq = []
-    # print('↓ b →  g |r')
     for g in range(6):
+        face = []
         for r in range(6):
             row = []
             for b in range(6):
                 row.append((r, g, b))
-            seq.append(row)
-    all_seqs.append(seq)
+            face.append(row)
+        seq.append(face)
+    all_seqs[('g', 'r', 'b')] = seq
 
     seq = []
-    # print('↓ g →  r |b')
     for b in range(6):
+        face = []
         for r in range(6):
             row = []
             for g in range(6):
                 row.append((r, g, b))
-            seq.append(row)
-    all_seqs.append(seq)
+            face.append(row)
+        seq.append(face)
+    all_seqs[('r', 'b', 'g')] = seq
 
-    print('-'*80)
-    seq = []
-    for i in range(6):
-        seq.append(
-            list(reversed(all_seqs[1][i])) +
-            all_seqs[0][i][1:] +
-            all_seqs[1][(5*6)+i][1:]
-        )
-    all_seqs.append(seq)
+    # print('-'*80)
+    # seq = []
+    # for i in range(6):
+    #     seq.append(
+    #         list(reversed(all_seqs[('g', 'b', 'r')][i])) +
+    #         all_seqs[('r', 'b', 'g')][i][1:] +
+    #         all_seqs[('g', 'b', 'r')][(5*6)+i][1:]
+    #     )
+    # all_seqs['joined'] = seq
 
-    for seq in all_seqs:
-        print_rgb_face(seq, padding_top=0)
-        print('-'*80)
+    for key, seq in all_seqs.items():
+        print(key, '-'*80, sep='\n')
+        print_rgb_faces(seq, padding_top=0)
+
+    print_rgb_faces(all_seqs[('g', 'b', 'r')][:6])
+
+    print('\n\n')
+    print('planar faces', '-'*80, sep='\n')
+
+    planar_faces = [
+        all_seqs[('r', 'b', 'g')][0],
+        all_seqs[('r', 'b', 'g')][5],
+        all_seqs[('g', 'b', 'r')][5],
+        all_seqs[('r', 'g', 'b')][0],
+        all_seqs[('g', 'b', 'r')][0],
+        all_seqs[('r', 'g', 'b')][5],
+    ]
+    print_rgb_faces(planar_faces, padding_top=0)
+    print_planar_rgb_cube(planar_faces)
 
 
 rainbow1 = [
