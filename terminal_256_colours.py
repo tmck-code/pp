@@ -159,8 +159,31 @@ def test7():
     print_cube(faces)
 
 
-def rgb_cell(r, g, b):
-    return colour_bg(f'{16 + 36*r:3d},{6*g:3d},{b:3d}', 16 + 36*r + 6*g + b)+RESET
+def rgb_cell(r, g, b, pad=False):
+    s = f'{16 + 36*r:3d},{6*g:2d},{b:d}'
+    if pad:
+        s = ' '*len(s)
+    return colour_bg(s=s, n=(16 + (36*r + 6*g + b)))+RESET
+
+
+def rgb_to_ansi(r, g, b):
+    'The golden formula'
+    return 16 + (36*r + 6*g + b)
+
+
+def rgb_row(row):
+    return ''.join(rgb_cell(*cell) for cell in row)
+
+
+def print_rgb_face(seq, padding_top=1, padding_bottom=1):
+    for row in seq:
+        for _ in range(padding_top):
+            print(''.join(rgb_cell(*cell, pad=True) for cell in row))
+
+        print(''.join(rgb_cell(*cell) for cell in row))
+
+        for _ in range(padding_bottom):
+            print(''.join(rgb_cell(*cell, pad=True) for cell in row))
 
 
 def test8():
@@ -175,7 +198,7 @@ def test8():
         for b in range(6):
             row = []
             for g in range(6):
-                row.append(rgb_cell(r, g, b))
+                row.append((r, g, b))
             seq.append(row)
     all_seqs.append(seq)
 
@@ -185,7 +208,7 @@ def test8():
         for b in range(6):
             row = []
             for r in range(6):
-                row.append(rgb_cell(r, g, b))
+                row.append((r, g, b))
             seq.append(row)
     all_seqs.append(seq)
 
@@ -195,17 +218,7 @@ def test8():
         for g in range(6):
             row = []
             for b in range(6):
-                row.append(rgb_cell(r, g, b))
-            seq.append(row)
-    all_seqs.append(seq)
-
-    seq = []
-    # print('↓ b →  g |r')
-    for g in range(6):
-        for r in range(6):
-            row = []
-            for b in range(6):
-                row.append(rgb_cell(r, g, b))
+                row.append((r, g, b))
             seq.append(row)
     all_seqs.append(seq)
 
@@ -215,7 +228,17 @@ def test8():
         for g in range(6):
             row = []
             for r in range(6):
-                row.append(rgb_cell(r, g, b))
+                row.append((r, g, b))
+            seq.append(row)
+    all_seqs.append(seq)
+
+    seq = []
+    # print('↓ b →  g |r')
+    for g in range(6):
+        for r in range(6):
+            row = []
+            for b in range(6):
+                row.append((r, g, b))
             seq.append(row)
     all_seqs.append(seq)
 
@@ -225,20 +248,22 @@ def test8():
         for r in range(6):
             row = []
             for g in range(6):
-                row.append(rgb_cell(r, g, b))
+                row.append((r, g, b))
             seq.append(row)
     all_seqs.append(seq)
 
     print('-'*80)
+    seq = []
     for i in range(6):
-        row = list(reversed(all_seqs[1][i])) + \
-            all_seqs[0][i] + all_seqs[1][(5*6)+i]
-        print(''.join(row))
-    print('-'*80)
+        seq.append(
+            list(reversed(all_seqs[1][i])) +
+            all_seqs[0][i][1:] +
+            all_seqs[1][(5*6)+i][1:]
+        )
+    all_seqs.append(seq)
 
     for seq in all_seqs:
-        for row in seq:
-            print(''.join(row))
+        print_rgb_face(seq, padding_top=0)
         print('-'*80)
 
 
