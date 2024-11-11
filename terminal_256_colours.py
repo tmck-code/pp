@@ -114,6 +114,7 @@ def test6():
 def join_faces(faces):
     return list(itertools.chain(*faces))
 
+
 def reverse(face):
     return list(reversed(face))
 
@@ -176,8 +177,8 @@ def rgb_to_ansi(r, g, b):
     return 16 + (36*r + 6*g + b)
 
 
-def rgb_row(row):
-    return ''.join(rgb_cell(*cell) for cell in row)
+def rgb_row(row, pad=False):
+    return ''.join([rgb_cell(*cell, pad=pad) for cell in row])
 
 
 def print_rgb_face(seq, padding_top=1, padding_bottom=1):
@@ -197,7 +198,7 @@ def print_rgb_faces(faces, padding_top=1, padding_bottom=1):
         print('-'*40)
 
 
-def print_planar_rgb_cube(faces):
+def print_planar_rgb_cube(faces, blank=False):
     # print the planar form of the cube, e.g.
     #     0
     #   1 2
@@ -209,7 +210,7 @@ def print_planar_rgb_cube(faces):
 
     string_faces = []
     for face in faces:
-        string_faces.append([rgb_row(row) for row in face])
+        string_faces.append([rgb_row(row, pad=blank) for row in face])
 
     flattened = [
         (empty_face, string_faces[0], empty_face),
@@ -316,7 +317,7 @@ def test8():
     print('planar faces', '-'*80, sep='\n')
 
     planar_faces = [
-        rot90(all_seqs[('b','g','r')][5], 3),
+        rot90(all_seqs[('b', 'g', 'r')][5], 3),
 
         rot90(all_seqs[('g', 'b', 'r')][0], 2),
         rot90(all_seqs[('r', 'g', 'b')][0], 3),
@@ -327,6 +328,8 @@ def test8():
     ]
     print_rgb_faces(planar_faces, padding_top=0)
     print_planar_rgb_cube(planar_faces)
+    print('\n\n', '-'*80)
+    print_planar_rgb_cube(planar_faces, blank=True)
 
 
 rainbow1 = [
