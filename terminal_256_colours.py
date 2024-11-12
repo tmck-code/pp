@@ -172,7 +172,7 @@ def rgb_cell(r, g, b, pad=False, s=None, colors256=True):
             s = f' {16 + (36*r + 6*g + b):3d} '
         else:
             s = f'{16 + 36*r:3d},{6*g:2d},{b:d}'
-    elif pad:
+    if pad:
         s = ' '*len(s)
     return colour_bg(s=s, n=(16 + (36*r + 6*g + b)))+RESET
 
@@ -368,9 +368,13 @@ def test8():
         print(m, all_colours[m])
         print_cell(m)
     print()
-    for face in itertools.batched(missing, 4):
+    for face in itertools.batched(missing, 8):
         print(''.join([colour_cell(cell)+RESET for cell in face]))
 
+    print_rgb_face(
+        all_seqs[('g', 'b', 'r')][1],
+        colors256=False
+    )
 
 
 rainbow1 = [
