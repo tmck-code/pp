@@ -343,6 +343,12 @@ def test8():
         rot90(all_seqs[('g', 'b', 'r')][5], 1, flip=True),
         rot90(all_seqs[('r', 'g', 'b')][5], 1, flip=True),
     ]
+    seen = set()
+    for fi, face in enumerate(planar_faces):
+        for y, row in enumerate(face):
+            planar_faces[fi][y] = [cell for cell in row if cell not in seen]
+            seen.update(row)
+
     print_rgb_faces(planar_faces, padding_top=0)
     print('-'*80)
     print_planar_rgb_cube(planar_faces)
