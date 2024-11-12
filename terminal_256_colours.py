@@ -321,8 +321,8 @@ def test8():
     # all_seqs['joined'] = seq
 
     for key, seq in all_seqs.items():
-        print(key, '-'*80, sep='\n')
         print_rgb_faces(seq, padding_top=0)
+        print(key, '-'*80, sep='\n')
 
     print_rgb_faces(all_seqs[('g', 'b', 'r')][:6])
 
@@ -365,16 +365,18 @@ def test8():
     print('total', len(colours))
     print('missing', len(missing), missing)
     for m in missing:
-        print(m, all_colours[m])
         print_cell(m)
+        print(m, all_colours[m])
     print()
-    for face in itertools.batched(missing, 8):
+    for face in itertools.batched(missing, 16):
+        print_grid([face])
         print(''.join([colour_cell(cell)+RESET for cell in face]))
 
-    print_rgb_face(
-        all_seqs[('g', 'b', 'r')][1],
-        colors256=False
-    )
+    for c in [False, True]:
+        print_rgb_face(
+            all_seqs[('g', 'b', 'r')][1],
+            colors256=c
+        )
 
 
 rainbow1 = [
