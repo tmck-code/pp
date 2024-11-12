@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import json
 import re
 import functools
 import itertools
@@ -181,33 +182,36 @@ def rgb_to_ansi(r, g, b):
     return 16 + (36*r + 6*g + b)
 
 
-def rgb_row(row, pad=False, s=None):
-    return ''.join([rgb_cell(*cell, pad=pad, s=s) for cell in row])
+def rgb_row(row, pad=False, s=None, colors256=True):
+    return ''.join([rgb_cell(*cell, pad=pad, s=s, colors256=colors256) for cell in row])
 
-def print_rgb_face(seq, padding_top=1, padding_bottom=1):
+def print_rgb_face(seq, padding_top=1, padding_bottom=1, colors256=True):
     for row in seq:
         for _ in range(padding_top):
-            print(''.join(rgb_cell(*cell, pad=True) for cell in row))
+            print(''.join(rgb_cell(*cell, pad=True, colors256=colors256) for cell in row))
 
-        print(''.join(rgb_cell(*cell) for cell in row))
+        print(''.join(rgb_cell(*cell, colors256=colors256) for cell in row))
 
         for _ in range(padding_bottom):
-            print(''.join(rgb_cell(*cell, pad=True) for cell in row))
+            print(''.join(rgb_cell(*cell, pad=True, colors256=colors256) for cell in row))
 
 
-def print_rgb_faces(faces, padding_top=1, padding_bottom=1):
+def print_rgb_faces(faces, padding_top=1, padding_bottom=1, colors256=True):
     for face in faces:
-        print_rgb_face(face, padding_top, padding_bottom)
+        print_rgb_face(face, padding_top, padding_bottom, colors256)
         # print('-'*40)
 
 
-def print_planar_rgb_cube(faces, blank=False):
+def print_planar_rgb_cube(faces, blank=False, colors256=True):
     # print the planar form of the cube, e.g.
     #     0
     #   1 2
     #     3 4
     #     5
-    cell_width = 5
+    if colors256:
+        cell_width = 5
+    else:
+        cell_width = 8
     if blank:
         cell_width = 3
     empty_face = []
@@ -219,7 +223,7 @@ def print_planar_rgb_cube(faces, blank=False):
         s = None
         if blank:
             s = ' '*cell_width
-        string_faces.append([rgb_row(row, s=s, pad=True) for row in face])
+        string_faces.append([rgb_row(row, s=s, pad=True, colors256=colors256) for row in face])
 
     flattened = [
         (empty_face, string_faces[0], empty_face),
@@ -337,20 +341,32 @@ def test8():
     ]
     print_rgb_faces(planar_faces, padding_top=0)
     print_planar_rgb_cube(planar_faces)
+    print_planar_rgb_cube(planar_faces, colors256=False)
     print('\n\n', '-'*80)
     print_planar_rgb_cube(planar_faces, blank=True)
 
-    colours = []
+    colours = {}
     for face in planar_faces:
-        colours.extend(list(map(
-            lambda cell: rgb_to_ansi(*cell),
-            itertools.chain(*face))
-        ))
+        for row in face:
+            for cell in row:
+                colours[rgb_to_ansi(*cell)] = cell
+    all_colours = {}
+    for r, g, b in itertools.product(range(6), repeat=3):
+        all_colours[rgb_to_ansi(r, g, b)] = (r, g, b)
+    print('all colours', len(all_colours), json.dumps(all_colours))
+
     colours = set(sorted(colours))
     print(colours)
     missing = set(range(16, 232)) ^ set(colours)
     print('total', len(colours))
     print('missing', len(missing), missing)
+    for m in missing:
+        print(m, all_colours[m])
+        print_cell(m)
+    print()
+    for face in itertools.batched(missing, 4):
+        print(''.join([colour_cell(cell)+RESET for cell in face]))
+
 
 
 rainbow1 = [
