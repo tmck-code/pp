@@ -165,9 +165,12 @@ def test7():
     print_cube(faces)
 
 
-def rgb_cell(r, g, b, pad=False, s=None):
+def rgb_cell(r, g, b, pad=False, s=None, colors256=True):
     if s is None:
-        s = f'{16 + 36*r:3d},{6*g:2d},{b:d}'
+        if colors256:
+            s = f' {16 + (36*r + 6*g + b):3d} '
+        else:
+            s = f'{16 + 36*r:3d},{6*g:2d},{b:d}'
     elif pad:
         s = ' '*len(s)
     return colour_bg(s=s, n=(16 + (36*r + 6*g + b)))+RESET
@@ -195,7 +198,7 @@ def print_rgb_face(seq, padding_top=1, padding_bottom=1):
 def print_rgb_faces(faces, padding_top=1, padding_bottom=1):
     for face in faces:
         print_rgb_face(face, padding_top, padding_bottom)
-        print('-'*40)
+        # print('-'*40)
 
 
 def print_planar_rgb_cube(faces, blank=False):
@@ -204,7 +207,7 @@ def print_planar_rgb_cube(faces, blank=False):
     #   1 2
     #     3 4
     #     5
-    cell_width = 8
+    cell_width = 5
     if blank:
         cell_width = 3
     empty_face = []
@@ -216,7 +219,7 @@ def print_planar_rgb_cube(faces, blank=False):
         s = None
         if blank:
             s = ' '*cell_width
-        string_faces.append([rgb_row(row, s=s) for row in face])
+        string_faces.append([rgb_row(row, s=s, pad=True) for row in face])
 
     flattened = [
         (empty_face, string_faces[0], empty_face),
@@ -336,6 +339,18 @@ def test8():
     print_planar_rgb_cube(planar_faces)
     print('\n\n', '-'*80)
     print_planar_rgb_cube(planar_faces, blank=True)
+
+    colours = []
+    for face in planar_faces:
+        colours.extend(list(map(
+            lambda cell: rgb_to_ansi(*cell),
+            itertools.chain(*face))
+        ))
+    colours = set(sorted(colours))
+    print(colours)
+    missing = set(range(16, 232)) ^ set(colours)
+    print('total', len(colours))
+    print('missing', len(missing), missing)
 
 
 rainbow1 = [
