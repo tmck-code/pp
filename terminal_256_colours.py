@@ -185,15 +185,18 @@ def rgb_to_ansi(r, g, b):
 def rgb_row(row, pad=False, s=None, colors256=True):
     return ''.join([rgb_cell(*cell, pad=pad, s=s, colors256=colors256) for cell in row])
 
+
 def print_rgb_face(seq, padding_top=1, padding_bottom=1, colors256=True):
     for row in seq:
         for _ in range(padding_top):
-            print(''.join(rgb_cell(*cell, pad=True, colors256=colors256) for cell in row))
+            print(''.join(rgb_cell(*cell, pad=True, colors256=colors256)
+                  for cell in row))
 
         print(''.join(rgb_cell(*cell, colors256=colors256) for cell in row))
 
         for _ in range(padding_bottom):
-            print(''.join(rgb_cell(*cell, pad=True, colors256=colors256) for cell in row))
+            print(''.join(rgb_cell(*cell, pad=True, colors256=colors256)
+                  for cell in row))
 
 
 def print_rgb_faces(faces, padding_top=1, padding_bottom=1, colors256=True):
@@ -223,7 +226,8 @@ def print_planar_rgb_cube(faces, blank=False, colors256=True):
         s = None
         if blank:
             s = ' '*cell_width
-        string_faces.append([rgb_row(row, s=s, pad=True, colors256=colors256) for row in face])
+        string_faces.append(
+            [rgb_row(row, s=s, pad=False, colors256=colors256) for row in face])
 
     flattened = [
         (empty_face, string_faces[0], empty_face),
@@ -340,10 +344,13 @@ def test8():
         rot90(all_seqs[('r', 'g', 'b')][5], 1, flip=True),
     ]
     print_rgb_faces(planar_faces, padding_top=0)
+    print('-'*80)
     print_planar_rgb_cube(planar_faces)
+    print('\n\n', '-'*80)
     print_planar_rgb_cube(planar_faces, colors256=False)
     print('\n\n', '-'*80)
     print_planar_rgb_cube(planar_faces, blank=True)
+    print('\n\n', '-'*80)
 
     colours, dup_colours = {}, []
     for face in planar_faces:
@@ -351,8 +358,7 @@ def test8():
             for cell in row:
                 colours[rgb_to_ansi(*cell)] = cell
                 dup_colours.append(cell)
-    print('total (including duplicates)', len(
-        dup_colours), json.dumps(dup_colours))
+    print('total (dup)', len(dup_colours), json.dumps(dup_colours))
 
     all_colours = {}
     for r, g, b in itertools.product(range(6), repeat=3):
@@ -364,19 +370,23 @@ def test8():
     missing = set(range(16, 232)) ^ set(colours)
     print('total', len(colours))
     print('missing', len(missing), missing)
+
     for m in missing:
         print_cell(m)
         print(m, all_colours[m])
-    print()
+    print('\n', '-'*80)
+
     for face in itertools.batched(missing, 16):
         print_grid([face])
         print(''.join([colour_cell(cell)+RESET for cell in face]))
+    print('\n', '-'*80)
 
     for c in [False, True]:
         print_rgb_face(
             all_seqs[('g', 'b', 'r')][1],
             colors256=c
         )
+        print('\n', '-'*80)
 
 
 rainbow1 = [
@@ -442,6 +452,48 @@ greyscale = [
     (248, 249, 250, 251, 252, 253, 254, 255),
 ]
 
+# 64 missing/extra colours:
+#  59    60    61    62    65    66    67    68    71    72    73    74    77    78    79    80
+#  95    96    97    98   101   102   103   104   107   108   109   110   113   114   115   116
+# 131   132   133   134   137   138   139   140   143   144   145   146   149   150   151   152
+# 167   168   169   170   173   174   175   176   179   180   181   182   185   186   187   188
+
+#   x   y    ?    y     y    n
+#  22   58   94  130  166  202
+#  23   59   95  131  167  203
+#  24   60   96  132  168  204
+#  25   61   97  133  169  205
+#  26   62   98  134  170  206
+#  27   63   99  135  171  207
+
+experiment1 = (
+    # --------------------------------#                                     # --------------------------------#
+    ( 16,   16,   16,   16,   16,   16,  201,  207,  213,  219,  225,  231,   16,   16,   16,   16,   16,   16),
+    ( 16,   16,   16,   16,   16,   16,  165,  171,  177,  183,  189,  195,   16,   16,   16,   16,   16,   16),
+    ( 16,   16,   16,   16,   16,   16,  129,  135,  141,  147,  153,  159,   16,   16,   16,   16,   16,   16),
+    ( 16,   16,   16,   16,   16,   16,   93,   99,  105,  111,  117,  123,   16,   16,   16,   16,   16,   16),
+    ( 16,   16,   16,   16,   16,   16,   57,   63,   69,   75,   81,   87,   16,   16,   16,   16,   16,   16), #
+    ( 16,   16,   16,   16,   16,   16,   21,   27,   33,   39,   45,   51,   16,   16,   16,   16,   16,   16), #
+    (201,  165,  129,   93,   57,   21,   21,   27,   33,   39,   45,   51,   16,   16,   16,   16,   16,   16), #
+    (200,  164,  128,   92,   56,   20,   20,   26,   32,   38,   44,   50,   16,   16,   16,   16,   16,   16), #
+    (199,  163,  127,   91,   55,   19,   19,   25,   31,   37,   43,   49,   16,   16,   16,   16,   16,   16), #
+    (198,  162,  126,   90,   54,   18,   18,   24,   30,   36,   42,   48,   16,   16,   16,   16,   16,   16), #
+    (197,  161,  125,   89,   53,   17,   17,   23,   29,   35,   41,   47,   16,   16,   16,   16,   16,   16), #
+    (196,  160,  124,   88,   52,   16,   16,   22,   28,   34,   40,   46,   16,   16,   16,   16,   16,   16), #
+    ( 16,   16,   16,   16,   16,   16,   16,   22,   28,   34,   40,   46,   46,   47,   48,   49,   50,   51),
+    ( 16,   16,   16,   16,   16,   16,   52,   58,   64,   70,   76,   82,   82,   83,   84,   85,   86,   87),
+    ( 16,   16,   16,   16,   16,   16,   88,   94,  100,  106,  112,  118,  118,  119,  120,  121,  122,  123),
+    ( 16,   16,   16,   16,   16,   16,  124,  130,  136,  142,  148,  154,  154,  155,  156,  157,  158,  159),
+    ( 16,   16,   16,   16,   16,   16,  160,  166,  172,  178,  184,  190,  190,  191,  192,  193,  194,  195),
+    ( 16,   16,   16,   16,   16,   16,  196,  202,  208,  214,  220,  226,  226,  227,  228,  229,  230,  231),
+    ( 16,   16,   16,   16,   16,   16,  196,  202,  208,  214,  220,  226,   16,   16,   16,   16,   16,   16), #
+    ( 16,   16,   16,   16,   16,   16,  197,  203,  209,  215,  221,  227,   16,   16,   16,   16,   16,   16), #
+    ( 16,   16,   16,   16,   16,   16,  198,  204,  210,  216,  222,  228,   16,   16,   16,   16,   16,   16), #
+    ( 16,   16,   16,   16,   16,   16,  199,  205,  211,  217,  223,  229,   16,   16,   16,   16,   16,   16), #
+    ( 16,   16,   16,   16,   16,   16,  200,  206,  212,  218,  224,  230,   16,   16,   16,   16,   16,   16), #
+    ( 16,   16,   16,   16,   16,   16,  201,  207,  213,  219,  225,  231,   16,   16,   16,   16,   16,   16), #
+)
+
 TESTS = (
     ('print sequential',                string_grid(test1())),
     ('test2',                           string_grid(list(test2()))),
@@ -472,3 +524,6 @@ print('-'*80)
 
 test7()
 test8()
+
+# run experiment 1
+run_tests([('experiment1', string_grid(experiment1))])
