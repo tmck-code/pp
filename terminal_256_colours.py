@@ -165,9 +165,10 @@ def test7():
     print_cube(faces)
 
 
-def rgb_cell(r, g, b, pad=False):
-    s = f'{16 + 36*r:3d},{6*g:2d},{b:d}'
-    if pad:
+def rgb_cell(r, g, b, pad=False, s=None):
+    if s is None:
+        s = f'{16 + 36*r:3d},{6*g:2d},{b:d}'
+    elif pad:
         s = ' '*len(s)
     return colour_bg(s=s, n=(16 + (36*r + 6*g + b)))+RESET
 
@@ -177,9 +178,8 @@ def rgb_to_ansi(r, g, b):
     return 16 + (36*r + 6*g + b)
 
 
-def rgb_row(row, pad=False):
-    return ''.join([rgb_cell(*cell, pad=pad) for cell in row])
-
+def rgb_row(row, pad=False, s=None):
+    return ''.join([rgb_cell(*cell, pad=pad, s=s) for cell in row])
 
 def print_rgb_face(seq, padding_top=1, padding_bottom=1):
     for row in seq:
@@ -204,13 +204,19 @@ def print_planar_rgb_cube(faces, blank=False):
     #   1 2
     #     3 4
     #     5
+    cell_width = 8
+    if blank:
+        cell_width = 3
     empty_face = []
     for _ in range(6):
-        empty_face.append(' '*8*6)
+        empty_face.append(' '*cell_width*6)
 
     string_faces = []
     for face in faces:
-        string_faces.append([rgb_row(row, pad=blank) for row in face])
+        s = None
+        if blank:
+            s = ' '*cell_width
+        string_faces.append([rgb_row(row, s=s) for row in face])
 
     flattened = [
         (empty_face, string_faces[0], empty_face),
