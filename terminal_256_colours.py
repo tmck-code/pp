@@ -345,11 +345,15 @@ def test8():
     print('\n\n', '-'*80)
     print_planar_rgb_cube(planar_faces, blank=True)
 
-    colours = {}
+    colours, dup_colours = {}, []
     for face in planar_faces:
         for row in face:
             for cell in row:
                 colours[rgb_to_ansi(*cell)] = cell
+                dup_colours.append(cell)
+    print('total (including duplicates)', len(
+        dup_colours), json.dumps(dup_colours))
+
     all_colours = {}
     for r, g, b in itertools.product(range(6), repeat=3):
         all_colours[rgb_to_ansi(r, g, b)] = (r, g, b)
