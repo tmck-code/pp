@@ -199,8 +199,15 @@ def print_rgb_face(seq, padding_top=1, padding_bottom=1, colors256=True):
                   for cell in row))
 
 
-def print_rgb_faces(faces, padding_top=1, padding_bottom=1, colors256=True):
-    for face in faces:
+def print_rgb_faces(faces, padding_top=1, padding_bottom=1, colors256=True, unique=False):
+    seen = set()
+    for i, face in enumerate(faces):
+        if unique:
+            for j, row in enumerate(face):
+                row = [cell for cell in row if cell not in seen]
+                face[j] = row
+                seen.update(row)
+
         print_rgb_face(face, padding_top, padding_bottom, colors256)
         # print('-'*40)
 
@@ -325,7 +332,7 @@ def test8():
     # all_seqs['joined'] = seq
 
     for key, seq in all_seqs.items():
-        print_rgb_faces(seq, padding_top=0)
+        print_rgb_faces(seq, padding_top=0, unique=True)
         print(key, '-'*80, sep='\n')
 
     print_rgb_faces(all_seqs[('g', 'b', 'r')][:6])
