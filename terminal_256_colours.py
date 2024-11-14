@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from itertools import starmap
+import types
 import json
 import re
 import functools
@@ -177,9 +179,62 @@ def rgb_cell(r, g, b, pad=False, s=None, colors256=True):
     return colour_bg(s=s, n=(16 + (36*r + 6*g + b)))+RESET
 
 
+_RGB_COMPONENT_MULTIPLIER = types.MappingProxyType({
+    'r': 36,
+    'g': 6,
+    'b': 1
+})
+
+
+def cube_coords_to_rgb(r, g, b):
+    return (
+        r*_RGB_COMPONENT_MULTIPLIER['r'],
+        g*_RGB_COMPONENT_MULTIPLIER['g'],
+        b*_RGB_COMPONENT_MULTIPLIER['b'],
+    )
+
+
 def rgb_to_ansi(r, g, b):
-    'The golden formula'
-    return 16 + (36*r + 6*g + b)
+    ''''
+    The golden formula. Via https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+      0-  7:  standard colors (as in ESC [ 30–37 m)
+      8- 15:  high intensity colors (as in ESC [ 90–97 m)
+     16-231:  6 × 6 × 6 cube (216 colors): 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5)
+    232-255:  grayscale from dark to light in 24 steps
+
+    Note: above is the _original_ documentation verbatim. My dumb version:
+
+    n = 16 + (36 * r) + (6 * g) + (1 * b)
+    '''
+    r2 = r*_RGB_COMPONENT_MULTIPLIER['r']
+    g2 = g*_RGB_COMPONENT_MULTIPLIER['g']
+    b2 = b*_RGB_COMPONENT_MULTIPLIER['b']
+
+    return 16 + r2 + g2 + b2
+
+
+def _ansi_to_rgb_component(n, component='r') -> int:
+    '''
+    Reverses the rgb_to_ansi formula to calculate a specific component of the RGB tuple
+    given an ANSI colour code, and the component to calculate.
+
+    n = 16 + (36 * r) + (6 * g) + (1 * b)
+    '''
+    if n < 16 or n >= 232:
+        raise ValueError(f'Invalid ANSI colour code for RGB conversion: {n}')
+
+    i = (
+        (n - 16)  # 16 is the base value
+                  # 36, 6, 1
+        // _RGB_COMPONENT_MULTIPLIER[component]
+        % 6       # each value can be 0-5
+    )
+    # I have nfi what this does, but it is crucial
+    return int((14135 + (10280 * i)) / 256)
+
+
+def ansi_to_rgb(n: int) -> tuple[int, ...]:
+    return tuple(starmap(_ansi_to_rgb_component, zip([n]*3, 'rgb')))
 
 
 def rgb_row(row, pad=False, s=None, colors256=True):
@@ -258,6 +313,23 @@ def test8():
         seq.append(face)
     all_seqs[('r', 'b', 'g')] = seq
 
+    print('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
+    seq = []
+    for face in all_seqs[('r', 'b', 'g')]:
+        converted_face = []
+        for row in face:
+            converted_row = []
+            for cell in row:
+                converted_row.append(rgb_to_ansi(*cell))
+            converted_face.append(converted_row)
+        seq.append(converted_face)
+
+    for face in seq:
+        for row in face:
+            for cell in row:
+                print_cell(cell)
+            print()
+
     seq = []
     # # print('↓ b →  r |g')
     for g in range(6):
@@ -314,16 +386,6 @@ def test8():
         seq.append(face)
     all_seqs[('r', 'b', 'g')] = seq
 
-    # print('-'*80)
-    # seq = []
-    # for i in range(6):
-    #     seq.append(
-    #         list(reversed(all_seqs[('g', 'b', 'r')][i])) +
-    #         all_seqs[('r', 'b', 'g')][i][1:] +
-    #         all_seqs[('g', 'b', 'r')][(5*6)+i][1:]
-    #     )
-    # all_seqs['joined'] = seq
-
     for key, seq in all_seqs.items():
         print_rgb_faces(seq, padding_top=0)
         print(key, '-'*80, sep='\n')
@@ -362,7 +424,8 @@ def test8():
 
     all_colours = {}
     for r, g, b in itertools.product(range(6), repeat=3):
-        all_colours[rgb_to_ansi(r, g, b)] = (r, g, b)
+        ansi = rgb_to_ansi(r, g, b)
+        all_colours[ansi] = ansi_to_rgb(ansi)
     print('all colours', len(all_colours), json.dumps(all_colours))
 
     colours = set(sorted(colours))
@@ -373,10 +436,10 @@ def test8():
 
     for m in missing:
         print_cell(m)
-        print(m, all_colours[m])
+        print(f' {m:-3d} rgb{all_colours[m]}')
     print('\n', '-'*80)
 
-    for face in itertools.batched(missing, 16):
+    for face in batched(missing, 16):
         print_grid([face])
         print(''.join([colour_cell(cell)+RESET for cell in face]))
     print('\n', '-'*80)

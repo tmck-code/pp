@@ -1,0 +1,100 @@
+'This module contains functions for converting between RGB and ANSI colour codes.'
+
+from __future__ import annotations
+from types import MappingProxyType
+from typing import Literal, TypeAlias, NamedTuple, Any
+
+# Valid components of an RGB tuple.
+_RGB_COMPONENT: TypeAlias = Literal['r', 'g', 'b']
+
+# Multipliers for each component of the RGB tuple in the ANSI colour code formula.
+_RGB_COMPONENT_MULTIPLIER: MappingProxyType[_RGB_COMPONENT, int] = MappingProxyType({
+    'r': 36,
+    'g': 6,
+    'b': 1
+})
+
+
+# component _must_ be one of 'r', 'g', or 'b'
+def _ansi_to_rgb_component(n: int, component: _RGB_COMPONENT) -> int:
+    '''
+    Reverses the rgb_to_ansi formula to calculate a specific component of the RGB tuple
+    given an ANSI colour code, and the component to calculate.
+
+    n = 16 + (36 * r) + (6 * g) + (1 * b)
+    '''
+    if n < 16 or n >= 232:
+        raise ValueError(f'Invalid ANSI colour code for RGB conversion: {n}')
+
+    i = (
+        (n - 16)  # 16 is the base value
+                  # 36, 6, 1
+        // _RGB_COMPONENT_MULTIPLIER[component]
+        % 5       # each value can be 0-5
+    )
+    if i == 0:
+        return 0
+    # I have nfi what this does, but it is crucial
+    return int((14135 + (10280 * i)) // 256)
+
+
+def ansi_to_rgb(n: int) -> tuple[int, int, int]:
+    'Reverses the rgb_to_ansi formula to calculate an RGB tuple given an ANSI colour code.'
+    return (
+        _ansi_to_rgb_component(n, 'r'),
+        _ansi_to_rgb_component(n, 'g'),
+        _ansi_to_rgb_component(n, 'b'),
+    )
+
+
+def cube_coords_to_ansi(r: int, g: int, b: int) -> int:
+    ''''
+    The golden formula. Via https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit:
+      0-  7:  standard colors (as in ESC [ 30–37 m)
+      8- 15:  high intensity colors (as in ESC [ 90–97 m)
+     16-231:  6 × 6 × 6 cube (216 colors): 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5)
+    232-255:  grayscale from dark to light in 24 steps
+    '''
+    return 16 + (
+        r * _RGB_COMPONENT_MULTIPLIER['r'] +
+        g * _RGB_COMPONENT_MULTIPLIER['g'] +
+        b * _RGB_COMPONENT_MULTIPLIER['b']
+    )
+
+
+# Valid (supported) ANSI styles.
+_ANSI_STYLES: TypeAlias = Literal['fg', 'bg']
+_ANSI_ESCAPE_CODES: MappingProxyType[_ANSI_STYLES, str] = MappingProxyType({
+    'fg': '38;5',
+    'bg': '48;5',
+})
+
+RESET: str = '\033[0m'
+
+
+class ANSIColour(NamedTuple):
+    'Represents a terminal colour in both RGB and ANSI formats.'
+    ansi_n: int
+    rgb: tuple[int, int, int]
+
+    def __escape(self, escape: str) -> str:
+        'Returns an ANSI escape code for setting the colour.'
+        return f'\033[{escape};{self.ansi_n}m'
+
+    def escape_code(self, style: _ANSI_STYLES) -> str:
+        'Returns the ANSI escape code for setting the colour.'
+        return self.__escape(_ANSI_ESCAPE_CODES[style])
+
+    def colorise(self, text: Any, style: _ANSI_STYLES = 'bg') -> str:
+        'Returns the text with the colour applied.'
+        return f'{self.escape_code(style)}{text}{RESET}'
+
+
+def from_cube_coords(r: int, g: int, b: int) -> ANSIColour:
+    'Creates an ANSIColour from an RGB tuple.'
+    return ANSIColour(rgb=(r, g, b), ansi_n=cube_coords_to_ansi(r, g, b))
+
+
+def from_ansi(n: int) -> ANSIColour:
+    'Creates an ANSIColour from an ANSI colour code.'
+    return ANSIColour(ansi_n=n, rgb=ansi_to_rgb(n))
