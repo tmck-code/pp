@@ -1,4 +1,6 @@
 from __future__ import annotations
+from itertools import repeat
+from itertools import chain
 from dataclasses import dataclass
 from itertools import permutations
 from typing import List, TypeAlias, Iterable, Literal, Iterator
@@ -38,9 +40,14 @@ class Faces:
             for row in face:
                 yield row
 
-    def print(self) -> None:
+    def print(self, padding_top: int = 0, padding_bottom: int = 1):
+
         for row in self.yield_rows():
-            print(*list(cell.colorise(f'{cell.ansi_n:^6}') for cell in row))
+            p = [cell.colorise(' '*6) for cell in row]
+            r = [cell.colorise(f'{cell.ansi_n:^6}') for cell in row]
+
+            for row in chain(repeat(p, padding_top), [r], repeat(p, padding_bottom)):
+                print(''.join(row))
 
 
 @dataclass
