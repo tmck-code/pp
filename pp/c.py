@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 from types import MappingProxyType
-from typing import Literal, TypeAlias, NamedTuple, Any
+from typing import Literal, TypeAlias, NamedTuple, Any, Tuple
 
 # Valid components of an RGB tuple.
 _RGB_COMPONENT: TypeAlias = Literal['r', 'g', 'b']
+_RGB_COMPONENTS: Tuple[_RGB_COMPONENT,
+                       _RGB_COMPONENT, _RGB_COMPONENT] = ('r', 'g', 'b')
 
 # Multipliers for each component of the RGB tuple in the ANSI colour code formula.
 _RGB_COMPONENT_MULTIPLIER: MappingProxyType[_RGB_COMPONENT, int] = MappingProxyType({
