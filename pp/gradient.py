@@ -15,14 +15,15 @@ Row = List[Cell]
 class Face:
     rows: List[Row]
 
-    def rot90(self, face, n=1, flip=False):
+    def rot90(self, n: int = 1, flip: bool = False) -> Face:
         'Rotate a matrix 90 degrees, n times, optionally flipped'
 
+        face = self.rows
         if flip:
             face = list(reversed(face))
         for _ in range(n):
             face = list(zip(*face[::-1]))
-        return face
+        return Face(face)
 
     def __iter__(self) -> Iterator[Row]:
         yield from self.rows
@@ -35,14 +36,15 @@ class Face:
 class Faces:
     faces: list[Face]
 
-    def yield_rows(self) -> Iterable[Row]:
+    def iter_rows(self) -> Iterable[Row]:
         for face in self.faces:
             for row in face:
                 yield row
 
-    def print(self, padding_top: int = 0, padding_bottom: int = 1):
+    def print(self, padding_top: int = 0, padding_bottom: int = 0) -> None:
+        'Print the faces of the cube, with optional cell padding top/bottom to make it more "square"'
 
-        for row in self.yield_rows():
+        for row in self.iter_rows():
             p = [cell.colorise(' '*6) for cell in row]
             r = [cell.colorise(f'{cell.ansi_n:^6}') for cell in row]
 
@@ -54,7 +56,7 @@ class Faces:
 class RGBCube:
     faces: Faces
 
-    def print(self):
+    def print(self) -> None:
         self.faces.print()
 
     @staticmethod
@@ -87,6 +89,6 @@ for i in range(16, 232):
     print(f'{i:3d} {str(cell.rgb):>16s}', cell.colorise(' '*8))
 
 
-for c1, c2, c3 in permutations(('r', 'g', 'b')):
-    print('-'*80, (c1, c2, c3), sep='\n')
-    RGBCube.from_ranges(c1, c2, c3).print()
+for order in permutations(('r', 'g', 'b')):
+    print('-'*80, order, sep='\n')
+    RGBCube.from_ranges(*order).print()
