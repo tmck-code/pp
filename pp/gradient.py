@@ -7,7 +7,7 @@ import os
 import re
 from typing import List, TypeAlias, Iterable, Literal, Iterator, Dict
 
-import c
+from pp import c
 
 Cell: TypeAlias = c.ANSIColour
 Row = List[Cell]
@@ -33,6 +33,26 @@ class Face:
     def __next__(self) -> Row:
         return next(self.__iter__())
 
+    def __getitem__(self, i: int) -> Row:
+        return self.rows[i]
+
+    @staticmethod
+    def empty_face(width: int = 6) -> Face:
+        return Face([c.from_ansi(16)] * width for _ in range(width))
+
+    def iter_s(self, padding_top: int = 0, padding_bottom: int = 0) -> Iterable[str]:
+        for row in self.__iter__():
+            p = [cell.colorise(' '*6) for cell in row]
+            r = [cell.colorise(f'{cell.ansi_n:^6}') for cell in row]
+
+            for row in chain(repeat(p, padding_top), [r], repeat(p, padding_bottom)):
+                yield ''.join(row)
+
+    def print(self, padding_top: int = 0, padding_bottom: int = 0) -> None:
+        'Print the face, with optional cell padding top/bottom to make it more "square"'
+
+        for row in self.iter_s(padding_top, padding_bottom):
+            print(row)
 
 ANSI_COLOURS = re.compile(r"""
     \x1b     # literal ESC
@@ -44,19 +64,24 @@ ANSI_COLOURS = re.compile(r"""
 
 @dataclass
 class Faces:
-    faces: list[Face]
+    faces: list[list[Face]]
+
+    def __iter__(self) -> Iterator[Face]:
+        for face_row in self.faces:
+            for face in face_row:
+                yield face
+
+    def __next__(self) -> Face:
+        return next(self.__iter__())
 
     def iter_rows(self) -> Iterable[Row]:
-        for face in self.faces:
-            for row in face:
+        for face_row in self.faces:
+            for row in zip(*face_row):
                 yield row
 
     def iter_s(self, padding_top: int = 0, padding_bottom: int = 0) -> Iterable[str]:
-        for row in self.iter_rows():
-            p = [cell.colorise(' '*6) for cell in row]
-            r = [cell.colorise(f'{cell.ansi_n:^6}') for cell in row]
-
-            for row in chain(repeat(p, padding_top), [r], repeat(p, padding_bottom)):
+        for face_row in self.faces:
+            for row in zip(*[face.iter_s(padding_top, padding_bottom) for face in face_row]):
                 yield ''.join(row)
 
     def as_str(self, padding_top: int = 0, padding_bottom: int = 0) -> str:
@@ -83,6 +108,17 @@ class RGBCube:
     def str_width(self) -> int:
         return max(len(ANSI_COLOURS.sub('', line)) for line in self.faces.iter_s())
 
+    def find_face_with_edge(self, edge: list[Cell]) -> Face:
+        for face in self.faces:
+            if face[0] == edge:
+                return face
+            elif face[-1] == edge:
+                return face.rot90(2)
+            elif [f[0] for f in face] == edge:
+                return face.rot90(3)
+            elif [f[-1] for f in face] == edge:
+                return face.rot90(1)
+
     @staticmethod
     def from_ranges(c1: Literal[c._RGB_COMPONENT], c2: c._RGB_COMPONENT, c3: c._RGB_COMPONENT) -> RGBCube:
         '''
@@ -98,13 +134,11 @@ class RGBCube:
             for r2 in range(6):
                 row = []
                 for r3 in range(6):
-                    cell = c.from_cube_coords(**{
-                        c1: r1, c2: r2, c3: r3
-                    })
-                    row.append(cell)
+                    row.append(
+                        c.from_cube_coords(**{c1: r1, c2: r2, c3: r3})
+                    )
                 face.append(row)
-            faces.append(face)
-
+            faces.append([Face(face)])
         return RGBCube(Faces(faces))
 
 @dataclass
@@ -113,8 +147,6 @@ class RGBCubeCollection:
 
     def __post_init__(self):
         self.width = os.get_terminal_size().columns
-
-
 
     def print(self, grid_sep: str = ' '*2) -> None:
         groups, current_group, current_width = [], {}, 0
@@ -143,7 +175,7 @@ print('\n'+'~'*80+'\n')
 
 coll=RGBCubeCollection({
     'rgb': RGBCube.from_ranges('r', 'g', 'b'),
-    'rbg': RGBCube.from_ranges('r', 'b', 'g'),
+    'rbg': RGBCube.from_ranges('b', 'r', 'g'),
     'grb': RGBCube.from_ranges('g', 'r', 'b'),
 })
 coll.print()

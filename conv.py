@@ -1,25 +1,65 @@
-def rgb_to_ansi(r, g, b):
-    'The golden formula'
-    ''''
-    The golden formula. Via https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit
+#!/usr/bin/env python3
 
-      0-  7:  standard colors (as in ESC [ 30–37 m)
-      8- 15:  high intensity colors (as in ESC [ 90–97 m)
-     16-231:  6 × 6 × 6 cube (216 colors): 16 + 36 × r + 6 × g + b (0 ≤ r, g, b ≤ 5)
-    232-255:  grayscale from dark to light in 24 steps
-    '''
-    return 16 + (36*r + 6*g + b)
+from pp import c, gradient
+
+for i in range(16, 232):
+    cell = c.from_ansi(i)
+    print(f'{i:3d} {str(cell.rgb):>16s}', cell.colorise(' '*8))
 
 
-def ansi_to_rgb(n):
-    if n < 16:
-        return (0, 0, 0)
-    if n < 232:
-        n -= 16
-        return (n // 36, (n % 36) // 6, n % 6)
-    return (n-232, n-232, n-232)
+print('\n'+'~'*80+'\n')
+
+coll=gradient.RGBCubeCollection({
+    'rgb': gradient.RGBCube.from_ranges('r', 'g', 'b'),
+    'brg': gradient.RGBCube.from_ranges('b', 'r', 'g'),
+    'grb': gradient.RGBCube.from_ranges('g', 'r', 'b'),
+})
+coll.print()
+
+print('\n'+'~'*80+'\n')
+
+c1 = gradient.RGBCube.from_ranges('r', 'b', 'g')
+c2 = gradient.RGBCube.from_ranges('g', 'r', 'b')
+c3 = gradient.RGBCube.from_ranges('b', 'r', 'g')
+
+def find_face_with_edge(collection, face_name, edge):
+    for e in [edge, edge[::-1]]:
+        for n, cube in collection.cubes.items():
+            if n == face_name:
+                continue
+            f = cube.find_face_with_edge(e)
+            if f:
+                return f, n
+
+def create_cube(f1, f1_name, cube_collection):
+    f1_lhs = [r[0] for r in f1.rows]
+
+    f2, f2_name = find_face_with_edge(cube_collection, f1_name, f1_lhs)
+    f3, f3_name = find_face_with_edge(cube_collection, f1_name, f1[-1])
+    f3_rhs = [row[-1] for row in f3]
+
+    f4, f4_name = find_face_with_edge(cube_collection, f1_name, f1[0])
+    f5, f5_name = find_face_with_edge(cube_collection, f3_name, f3_rhs)
+    f6, f6_name = find_face_with_edge(cube_collection, f3_name, f3[-1])
+
+    faces=[
+        [gradient.Face.empty_face(6), f4.rot90(0, flip=True), gradient.Face.empty_face(6)],
+        [f2.rot90(3, flip=True),      f1,                     gradient.Face.empty_face(6)],
+        [gradient.Face.empty_face(6), f3,                     f5.rot90(1)],
+        [gradient.Face.empty_face(6), f6,                     gradient.Face.empty_face(6)],
+    ]
+    gradient.Faces(faces).print()
 
 
-def ansi_colour_cube() -> list[list[int]]
+coll = gradient.RGBCubeCollection({
+    'rbg': gradient.RGBCube.from_ranges('r', 'b', 'g'),
+    'brg': gradient.RGBCube.from_ranges('b', 'r', 'g'),
+    'grb': gradient.RGBCube.from_ranges('g', 'r', 'b'),
+})
+f1 = coll.cubes['rbg'].faces.faces[0][0].rot90(0, flip=True)
 
-'6x6x6 rgb colour cube including pastels (i.e. no repeated colours)'
+create_cube(
+    f1=f1,
+    f1_name='rbg',
+    cube_collection=coll
+)
