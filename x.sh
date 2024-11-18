@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[ "${DEBUG:-}" == true ] && set -euxo pipefail
+
 usage() {
     echo "palette-to-rgb [COL] [-rgb] [-raw] [-C] [-h]"
     echo "Show RGB values of the standard terminal 256-color palette."
@@ -8,6 +10,7 @@ usage() {
     echo "  -rgb  Format as \"rgb(R, G, B)\" instead of \"#RRGGBB\""
     echo "  -raw  Show the value only"
     echo "  -C    Force coloring even when piped"
+    echo "  -pastel    Use 'pastel' to show more colour info"
 }
 
 std_colors=(
@@ -29,11 +32,17 @@ std_colors=(
     255 255 255  # 15 bright white
 )
 
+test -x /opt/homebrew/bin/gecho && echo=gecho || echo=echo
+
+echo_msg() {
+  $echo "${@}"
+}
+
 # 6x6x6 cube color component
 cube_component() {
     local i=$(( (($1 - 16) / $2) % 6 ))
     # >&2 gecho -n "(\$1=$1, \$2=$2, i=$i) "
-    (( $i == 0 )) && echo 0 || echo $(( ( 14135 + 10280 * $i ) / 256 ))
+    (( $i == 0 )) && echo_msg 0 || echo_msg $(( ( 14135 + 10280 * $i ) / 256 ))
 }
 
 get_color() {
@@ -54,41 +63,45 @@ get_color() {
         b=$r
     fi
     # >&2 echo
-    [[ -n $rgb ]] && fmt='rgb(%i, %i, %i)' || fmt='#%02x%02x%02x'
-    printf "$fmt\n" $r $g $b
+    [[ -n $rgb ]] && fmt='rgb(%3i, %3i, %3i)' || fmt='#%02x%02x%02x'
+    printf "$fmt" $r $g $b
 }
 
 print_color() {
+    local pastel=$2
     if [[ -n $raw ]]; then
         get_color $1
     else
-        printf '%03i: %s\n' $1 "$(get_color $1)"
-        # Show a colored box if not piped (or with option -C)
+        printf '%03i: %-19s' $1 "$(get_color $1): "
+        # Show a colored box if not piped (or with option -C )
         if [[ -t 1 || -n $colored ]]; then
           s="        "
-          gecho -en "\e[48;5;${1}m$s\e[0m \n"
-          gecho -en "\e[48;5;${1}m$s\e[0m \n"
+          echo_msg -en "\e[48;5;${1}m$s\e[0m "
         fi
+        echo
     fi
+    rgb=$(get_color $1)
+    [[ -n $pastel ]] && pastel color "$rgb"
 }
 
-color= colored= rgb= raw=
+color= colored= rgb= raw= pastel=
 for arg in "$@"; do
     if [[ $arg == -h ]]; then usage; exit
     elif [[ $arg =~ ^[0-9]+$ ]]; then
-        (( $arg > 255 )) && { echo "Wrong color code" >&2; exit 1; }
+        (( $arg > 255 )) && { echo_msg "Wrong color code" >&2; exit 1; }
         color=$arg
     elif [[ $arg == -C ]]; then colored=1
     elif [[ $arg == -rgb ]]; then rgb=1
     elif [[ $arg == -raw ]]; then raw=1
-    else echo "Wrong arg: $arg" >&2; exit 1
+    elif [[ $arg == -pastel ]]; then pastel=1
+    else echo_msg "Wrong arg: $arg" >&2; exit 1
     fi
 done
 
 if [[ -n $color ]]; then
-    print_color $color
+    print_color $color $pastel
 else
     for n in {0..255}; do
-        print_color $n
+        print_color $n $pastel
     done
 fi

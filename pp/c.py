@@ -30,14 +30,14 @@ def _ansi_to_rgb_component(n: int, component: _RGB_COMPONENT) -> int:
 
     i = (
         (n - 16)  # 16 is the base value
-                  # 36, 6, 1
+                  # divide by 36/6/1
         // _RGB_COMPONENT_MULTIPLIER[component]
-        % 5       # each value can be 0-5
+        % 6       # each value can be 0-5
     )
     if i == 0:
         return 0
     # I have nfi what this does, but it is crucial
-    return int((14135 + (10280 * i)) // 256)
+    return int((14135 + (10280 * i)) / 256)
 
 
 def ansi_to_rgb(n: int) -> tuple[int, int, int]:
