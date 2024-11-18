@@ -108,16 +108,28 @@ class RGBCube:
     def str_width(self) -> int:
         return max(len(ANSI_COLOURS.sub('', line)) for line in self.faces.iter_s())
 
-    def find_face_with_edge(self, edge: list[Cell]) -> Face:
+    @staticmethod
+    def compare_rows(r1: Row, r2: Row) -> bool:
+        return all(c1 == c2 for c1, c2 in zip(r1, r2))
+
+    def find_face_with_edge(self, face: Face, edge_type: str='ts') -> Face:
+        if edge_type == 'ts':    edge = face[0]
+        elif edge_type == 'bs':  edge = face[-1]
+        elif edge_type == 'lhs': edge = [r[0] for r in face]
+        elif edge_type == 'rhs': edge = [r[-1] for r in face]
+
         for face in self.faces:
-            if face[0] == edge:
-                return face
-            elif face[-1] == edge:
-                return face.rot90(2)
-            elif [f[0] for f in face] == edge:
-                return face.rot90(3)
-            elif [f[-1] for f in face] == edge:
-                return face.rot90(1)
+            for rot in range(4):
+                for flip in (False, True):
+                    if edge_type == 'ts' and RGBCube.compare_rows(face.rot90(rot, flip=flip)[-1], edge):
+                        return face.rot90(rot, flip=flip)
+                    elif edge_type == 'bs' and RGBCube.compare_rows(face.rot90(rot, flip=flip)[0], edge):
+                        return face.rot90(rot, flip=flip)
+                    elif edge_type == 'lhs' and RGBCube.compare_rows([r[-1] for r in face.rot90(rot, flip=flip)], edge):
+                        return face.rot90(rot, flip=flip)
+                    elif edge_type == 'rhs' and RGBCube.compare_rows([r[0] for r in face.rot90(rot, flip=flip)], edge):
+                        return face.rot90(rot, flip=flip)
+
 
     @staticmethod
     def from_ranges(c1: Literal[c._RGB_COMPONENT], c2: c._RGB_COMPONENT, c3: c._RGB_COMPONENT) -> RGBCube:
