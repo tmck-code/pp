@@ -34,6 +34,14 @@ class Face:
         return next(self.__iter__())
 
 
+ANSI_COLOURS = re.compile(r"""
+    \x1b     # literal ESC
+    \[       # literal [
+    [;\d]*   # zero or more digits or semicolons
+    [A-Za-z] # a letter
+    """, re.VERBOSE)
+
+
 @dataclass
 class Faces:
     faces: list[Face]
@@ -71,6 +79,10 @@ class RGBCube:
     def print(self) -> None:
         self.faces.print()
 
+    @property
+    def str_width(self) -> int:
+        return max(len(ANSI_COLOURS.sub('', line)) for line in self.faces.iter_s())
+
     @staticmethod
     def from_ranges(c1: Literal[c._RGB_COMPONENT], c2: c._RGB_COMPONENT, c3: c._RGB_COMPONENT) -> RGBCube:
         '''
@@ -95,13 +107,6 @@ class RGBCube:
 
         return RGBCube(Faces(faces))
 
-ANSI_COLOURS = re.compile(r"""
-    \x1b     # literal ESC
-    \[       # literal [
-    [;\d]*   # zero or more digits or semicolons
-    [A-Za-z] # a letter
-    """, re.VERBOSE)
-
 @dataclass
 class RGBCubeCollection:
     cubes: Dict[str, RGBCube]
@@ -114,17 +119,16 @@ class RGBCubeCollection:
     def print(self, grid_sep: str = ' '*2) -> None:
         groups, current_group, current_width = [], {}, 0
         for name, cube in self.cubes.items():
-            if sum(c.width for c in current_group.values()) + cube.width <= self.width:
+            if sum(c.str_width for c in current_group.values()) + cube.str_width <= self.width:
                 current_group[name] = cube
             else:
-                current_group = {name: cube}
                 groups.append(current_group)
+                current_group = {name: cube}
         groups.append(current_group)
 
         for g in groups:
             for name, c in g.items():
-                width = max(len(ANSI_COLOURS.sub('', line)) for line in c.faces.iter_s())
-                print(f'{name:<{width}s}',end=grid_sep)
+                print(f'{name:<{c.str_width}s}',end=grid_sep)
             print()
             for rows in zip(*[c.faces.iter_s() for n,c in g.items()]):
                 print(grid_sep.join(rows))
@@ -135,10 +139,7 @@ for i in range(16, 232):
     print(f'{i:3d} {str(cell.rgb):>16s}', cell.colorise(' '*8))
 
 
-# coll = []
-# for order in (('r','g','b'), ('g','r','b'), ('b','r','g')):
-#     print('-'*80, order, sep='\n')
-#     coll.append(RGBCube.from_ranges(*order))
+print('\n'+'~'*80+'\n')
 
 coll=RGBCubeCollection({
     'rgb': RGBCube.from_ranges('r', 'g', 'b'),
