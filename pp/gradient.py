@@ -3,7 +3,9 @@ from itertools import repeat
 from itertools import chain
 from dataclasses import dataclass
 from itertools import permutations
-from typing import List, TypeAlias, Iterable, Literal, Iterator
+import os
+import re
+from typing import List, TypeAlias, Iterable, Literal, Iterator, Dict
 
 import c
 
@@ -41,20 +43,30 @@ class Faces:
             for row in face:
                 yield row
 
-    def print(self, padding_top: int = 0, padding_bottom: int = 0) -> None:
-        'Print the faces of the cube, with optional cell padding top/bottom to make it more "square"'
-
+    def iter_s(self, padding_top: int = 0, padding_bottom: int = 0) -> Iterable[str]:
         for row in self.iter_rows():
             p = [cell.colorise(' '*6) for cell in row]
             r = [cell.colorise(f'{cell.ansi_n:^6}') for cell in row]
 
             for row in chain(repeat(p, padding_top), [r], repeat(p, padding_bottom)):
-                print(''.join(row))
+                yield ''.join(row)
+
+    def as_str(self, padding_top: int = 0, padding_bottom: int = 0) -> str:
+        s = ''
+        for row in self.iter_s(padding_top, padding_bottom):
+            s += row + '\n'
+        return s
+
+    def print(self, padding_top: int = 0, padding_bottom: int = 0) -> None:
+        'Print the faces of the cube, with optional cell padding top/bottom to make it more "square"'
+
+        print(self.as_str(padding_top, padding_bottom))
 
 
 @dataclass
 class RGBCube:
     faces: Faces
+    width: int = 6
 
     def print(self) -> None:
         self.faces.print()
@@ -83,12 +95,54 @@ class RGBCube:
 
         return RGBCube(Faces(faces))
 
+ANSI_COLOURS = re.compile(r"""
+    \x1b     # literal ESC
+    \[       # literal [
+    [;\d]*   # zero or more digits or semicolons
+    [A-Za-z] # a letter
+    """, re.VERBOSE)
+
+@dataclass
+class RGBCubeCollection:
+    cubes: Dict[str, RGBCube]
+
+    def __post_init__(self):
+        self.width = os.get_terminal_size().columns
+
+
+
+    def print(self, grid_sep: str = ' '*2) -> None:
+        groups, current_group, current_width = [], {}, 0
+        for name, cube in self.cubes.items():
+            if sum(c.width for c in current_group.values()) + cube.width <= self.width:
+                current_group[name] = cube
+            else:
+                current_group = {name: cube}
+                groups.append(current_group)
+        groups.append(current_group)
+
+        for g in groups:
+            for name, c in g.items():
+                width = max(len(ANSI_COLOURS.sub('', line)) for line in c.faces.iter_s())
+                print(f'{name:<{width}s}',end=grid_sep)
+            print()
+            for rows in zip(*[c.faces.iter_s() for n,c in g.items()]):
+                print(grid_sep.join(rows))
+
 
 for i in range(16, 232):
     cell = c.from_ansi(i)
     print(f'{i:3d} {str(cell.rgb):>16s}', cell.colorise(' '*8))
 
 
-for order in permutations(('r', 'g', 'b')):
-    print('-'*80, order, sep='\n')
-    RGBCube.from_ranges(*order).print()
+# coll = []
+# for order in (('r','g','b'), ('g','r','b'), ('b','r','g')):
+#     print('-'*80, order, sep='\n')
+#     coll.append(RGBCube.from_ranges(*order))
+
+coll=RGBCubeCollection({
+    'rgb': RGBCube.from_ranges('r', 'g', 'b'),
+    'rbg': RGBCube.from_ranges('r', 'b', 'g'),
+    'grb': RGBCube.from_ranges('g', 'r', 'b'),
+})
+coll.print()
