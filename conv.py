@@ -23,36 +23,30 @@ def create_cube(f1, f1_name, cube_collection):
         [gradient.Face.empty_face(6), f3, f5],
         [gradient.Face.empty_face(6), f6, gradient.Face.empty_face(6)],
     ]
-    gradient.Faces(faces).print()
+    gradient.Faces(faces).print(padding_top=0, padding_bottom=1)
 
 for i in range(16, 232):
     cell = c.from_ansi(i)
     print(f'{i:3d} {str(cell.rgb):>16s}', cell.colorise(' '*8))
 
-
 print('\n'+'~'*80+'\n')
 
-coll=gradient.RGBCubeCollection({
-    'rgb': gradient.RGBCube.from_ranges('r', 'g', 'b'),
-    'brg': gradient.RGBCube.from_ranges('b', 'r', 'g'),
-    'grb': gradient.RGBCube.from_ranges('g', 'r', 'b'),
-})
-coll.print()
-
-print('\n'+'~'*80+'\n')
 coll = gradient.RGBCubeCollection({
     'bgr': gradient.RGBCube.from_ranges('b', 'g', 'r'),
     'rgb': gradient.RGBCube.from_ranges('r', 'g', 'b'),
     'grb': gradient.RGBCube.from_ranges('g', 'r', 'b'),
 })
-coll.print()
+coll.print(padding_top=0, padding_bottom=1)
 
 for k in ('rgb', 'grb', 'bgr'):
-    print('\n'+'~'*80+'\n')
-    f1 = coll.cubes[k].faces.faces[0][0].rot90(0, flip=True)
+    print('\n'+'~'*80+'\n'+k)
+    for rot in range(4):
+        f1 = coll.cubes[k].faces.faces[0][0].rot90(rot, flip=True)
+        f1.print(padding_top=0, padding_bottom=1)
+        print()
 
-    create_cube(
-        f1=f1,
-        f1_name=k,
-        cube_collection=coll
-    )
+        create_cube(
+            f1=f1,
+            f1_name=k,
+            cube_collection=coll
+        )

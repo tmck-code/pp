@@ -160,7 +160,7 @@ class RGBCubeCollection:
     def __post_init__(self):
         self.width = os.get_terminal_size().columns
 
-    def print(self, grid_sep: str = ' '*2) -> None:
+    def print(self, grid_sep: str = ' '*2, padding_top: int = 0, padding_bottom: int = 0) -> None:
         groups, current_group, current_width = [], {}, 0
         for name, cube in self.cubes.items():
             if sum(c.str_width for c in current_group.values()) + cube.str_width <= self.width:
@@ -174,20 +174,6 @@ class RGBCubeCollection:
             for name, c in g.items():
                 print(f'{name:<{c.str_width}s}',end=grid_sep)
             print()
-            for rows in zip(*[c.faces.iter_s() for n,c in g.items()]):
+            for rows in zip(*[c.faces.iter_s(padding_top, padding_bottom) for n,c in g.items()]):
                 print(grid_sep.join(rows))
 
-
-for i in range(16, 232):
-    cell = c.from_ansi(i)
-    print(f'{i:3d} {str(cell.rgb):>16s}', cell.colorise(' '*8))
-
-
-print('\n'+'~'*80+'\n')
-
-coll=RGBCubeCollection({
-    'rgb': RGBCube.from_ranges('r', 'g', 'b'),
-    'rbg': RGBCube.from_ranges('b', 'r', 'g'),
-    'grb': RGBCube.from_ranges('g', 'r', 'b'),
-})
-coll.print()
