@@ -1,7 +1,7 @@
 from __future__ import annotations
 from itertools import repeat
 from itertools import chain
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import permutations
 import os
 import re
@@ -16,16 +16,29 @@ Row = List[Cell]
 @dataclass
 class Face:
     rows: List[Row]
+    with_rotations: bool = True
+    rotations: List[Face] = field(default_factory=list)
+    flipped_rotations: List[Face] = field(default_factory=list)
+
+    def __post_init__(self):
+        if self.with_rotations:
+            self.rotations = [Face._rot90(self.rows, n, flip=False) for n in range(4)]
+            self.flipped_rotations = [Face._rot90(self.rows, n, flip=True) for n in range(4)]
+
+    @staticmethod
+    def _rot90(rows: List[Row], n: int = 1, flip: bool = False) -> Face:
+        'Rotate a matrix 90 degrees, n times, optionally flipped'
+        if flip:
+            rows = list(reversed(rows))
+        for _ in range(n):
+            rows = list(zip(*rows[::-1]))
+        return Face(rows, with_rotations=False)
 
     def rot90(self, n: int = 1, flip: bool = False) -> Face:
         'Rotate a matrix 90 degrees, n times, optionally flipped'
-
-        face = self.rows
         if flip:
-            face = list(reversed(face))
-        for _ in range(n):
-            face = list(zip(*face[::-1]))
-        return Face(face)
+            return self.flipped_rotations[n]
+        return self.rotations[n]
 
     def __iter__(self) -> Iterator[Row]:
         yield from self.rows
@@ -38,21 +51,20 @@ class Face:
 
     @staticmethod
     def empty_face(width: int = 6) -> Face:
-        return Face([c.from_ansi(16)] * width for _ in range(width))
+        return Face([[c.from_ansi(16)] * width] * width)
 
-    def iter_s(self, padding_top: int = 0, padding_bottom: int = 0) -> Iterable[str]:
+    def iter_s(self, padding_top: int = 0, padding_bottom: int = 0, cell_width: int = 6) -> Iterable[str]:
         for row in self.__iter__():
-            p = [cell.colorise(' '*6) for cell in row]
-            r = [cell.colorise(f'{cell.ansi_n:^6}') for cell in row]
+            p = [cell.colorise(' '*cell_width) for cell in row]
+            r = [cell.colorise(f'{cell.ansi_n:^{cell_width}}') for cell in row]
 
             for row in chain(repeat(p, padding_top), [r], repeat(p, padding_bottom)):
                 yield ''.join(row)
 
-    def print(self, padding_top: int = 0, padding_bottom: int = 0) -> None:
+    def print(self, padding_top: int = 0, padding_bottom: int = 0, cell_width: int = 6) -> None:
         'Print the face, with optional cell padding top/bottom to make it more "square"'
 
-        for row in self.iter_s(padding_top, padding_bottom):
-            print(row)
+        print('\n'.join(self.iter_s(padding_top, padding_bottom, cell_width)))
 
 ANSI_COLOURS = re.compile(r"""
     \x1b     # literal ESC
@@ -79,21 +91,21 @@ class Faces:
             for row in zip(*face_row):
                 yield row
 
-    def iter_s(self, padding_top: int = 0, padding_bottom: int = 0) -> Iterable[str]:
+    def iter_s(self, padding_top: int = 0, padding_bottom: int = 0, cell_width: int = 6) -> Iterable[str]:
         for face_row in self.faces:
-            for row in zip(*[face.iter_s(padding_top, padding_bottom) for face in face_row]):
+            for row in zip(*[face.iter_s(padding_top, padding_bottom, cell_width) for face in face_row]):
                 yield ''.join(row)
 
-    def as_str(self, padding_top: int = 0, padding_bottom: int = 0) -> str:
+    def as_str(self, padding_top: int = 0, padding_bottom: int = 0, cell_width: int = 6) -> str:
         s = ''
-        for row in self.iter_s(padding_top, padding_bottom):
+        for row in self.iter_s(padding_top, padding_bottom, cell_width):
             s += row + '\n'
         return s
 
-    def print(self, padding_top: int = 0, padding_bottom: int = 0) -> None:
+    def print(self, padding_top: int = 0, padding_bottom: int = 0, cell_width: int = 6) -> None:
         'Print the faces of the cube, with optional cell padding top/bottom to make it more "square"'
 
-        print(self.as_str(padding_top, padding_bottom))
+        print(self.as_str(padding_top, padding_bottom, cell_width))
 
 
 @dataclass

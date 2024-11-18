@@ -23,7 +23,7 @@ def create_cube(f1, f1_name, cube_collection):
         [gradient.Face.empty_face(6), f3, f5],
         [gradient.Face.empty_face(6), f6, gradient.Face.empty_face(6)],
     ]
-    gradient.Faces(faces).print(padding_top=0, padding_bottom=1)
+    gradient.Faces(faces).print(padding_top=0, padding_bottom=1, cell_width=5)
 
 for i in range(16, 232):
     cell = c.from_ansi(i)
@@ -50,3 +50,5 @@ for k in ('rgb', 'grb', 'bgr'):
             f1_name=k,
             cube_collection=coll
         )
+        input()
+
