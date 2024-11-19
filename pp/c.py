@@ -26,7 +26,8 @@ def _ansi_to_rgb_component(n: int, component: _RGB_COMPONENT) -> int:
     n = 16 + (36 * r) + (6 * g) + (1 * b)
     '''
     if n < 16 or n >= 232:
-        raise ValueError(f'Invalid ANSI colour code for RGB conversion: {n}')
+        return 0
+        # raise ValueError(f'Invalid ANSI colour code for RGB conversion: {n}')
 
     i = (
         (n - 16)  # 16 is the base value
@@ -37,7 +38,7 @@ def _ansi_to_rgb_component(n: int, component: _RGB_COMPONENT) -> int:
     if i == 0:
         return 0
     # I have nfi what this does, but it is crucial
-    return int((14135 + (10280 * i)) / 256)
+    return (14135 + (10280 * i)) // 256
 
 
 def ansi_to_rgb(n: int) -> tuple[int, int, int]:
