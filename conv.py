@@ -27,6 +27,20 @@ def create_cube(f1, f1_name, cube_collection):
     ]
     gradient.Faces(faces).print(padding_top=0, padding_bottom=1, cell_width=15)
 
+    c1 = f2[2][3].rgb
+    c2 = f4[2][3].rgb
+
+    print(f'c1: {c1}, c2: {c2}')
+
+    g = gradient.interp_xyz(c1, c2, 10)
+    for r, g, b in g:
+        print(
+            '\033[48;5;{};{};{}m'.format(
+                int(r), int(g), int(b)
+            ) + f'{str((r, g, b)):^10s}' + '\033[0m'
+        )
+        # print(c.from_rgb(r, g, b).colorise(' '*8))
+
 
 for i in range(16, 232):
     cell = c.from_ansi(i)

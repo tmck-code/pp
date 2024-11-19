@@ -95,7 +95,8 @@ class ANSIColour(NamedTuple):
 
 def from_cube_coords(r: int, g: int, b: int) -> ANSIColour:
     'Creates an ANSIColour from an RGB tuple.'
-    return ANSIColour(rgb=(r, g, b), ansi_n=cube_coords_to_ansi(r, g, b))
+    ansi = cube_coords_to_ansi(r, g, b)
+    return ANSIColour(rgb=ansi_to_rgb(ansi), ansi_n=ansi)
 
 
 def from_ansi(n: int) -> ANSIColour:
