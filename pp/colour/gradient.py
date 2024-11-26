@@ -9,7 +9,7 @@ import os
 import re
 from typing import List, TypeAlias, Iterable, Literal, Iterator, Dict
 
-from pp import c
+from pp.colour import c
 
 Cell: TypeAlias = c.ANSIColour
 Row = List[Cell]
@@ -226,3 +226,41 @@ class RGBCubeCollection:
             print()
             for rows in zip(*[c.faces.iter_s(padding_top, padding_bottom, cell_width) for n, c in g.items()]):
                 print(grid_sep.join(rows))
+
+def find_face_with_edge(collection: RGBCubeCollection, face_name: str, face: Face, edge_type: str) -> Face:
+    for n, cube in collection.cubes.items():
+        if n == face_name:
+            continue
+        f = cube.find_face_with_edge(face, edge_type)
+        if f:
+            return f, n
+
+
+def create_cube(f1, f1_name, cube_collection):
+    f2, f2_name = find_face_with_edge(cube_collection, f1_name, f1, 'lhs')
+    f3, f3_name = find_face_with_edge(cube_collection, f1_name, f1, 'bs')
+    f4, f4_name = find_face_with_edge(cube_collection, f1_name, f1, 'ts')
+    f5, f5_name = find_face_with_edge(cube_collection, f3_name, f3, 'rhs')
+    f6, f6_name = find_face_with_edge(cube_collection, f3_name, f3, 'bs')
+
+    faces = [
+        [Face.empty_face(6), f4, Face.empty_face(6)],
+        [f2,                          f1, Face.empty_face(6)],
+        [Face.empty_face(6), f3, f5],
+        [Face.empty_face(6), f6, Face.empty_face(6)],
+    ]
+    Faces(faces).print(padding_top=0, padding_bottom=1, cell_width=15)
+
+    c1 = f2[2][3].rgb
+    c2 = f4[2][3].rgb
+
+    print(f'c1: {c1}, c2: {c2}')
+
+    g = interp_xyz(c1, c2, 10)
+    for r, g, b in g:
+        print(
+            '\033[48;5;{};{};{}m'.format(
+                int(r), int(g), int(b)
+            ) + f'{str((r, g, b)):^10s}' + '\033[0m'
+        )
+        # print(c.from_rgb(r, g, b).colorise(' '*8))
