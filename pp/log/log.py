@@ -11,15 +11,10 @@ usage examples to initialise a logger:
 
     # 3. initialise logger to both stderr and file:
     logger = getLogger('my_logger', level=logging.DEBUG, print_stream=sys.stderr, filename='my_log.log')
-
-    # 4. initialise logger with custom handlers:
-    logger = getLogger('my_logger', level=logging.DEBUG, handlers=[logging.StreamHandler(sys.stdout), logging.FileHandler('my_log.log')])
     ```
 
 usage examples to log messages:
     ```python
-    logger = getLogger('my_logger', level=logging.DEBUG, print_stream=sys.stdout)
-
     logger.info('This is a basic info message')
     # {"timestamp": "2024-12-09T15:05:43.904417", "msg": "This is a basic info message", "data": {}}
 
