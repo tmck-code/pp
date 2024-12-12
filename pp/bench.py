@@ -13,10 +13,13 @@ func_groups = [
 tests = [
     ( (arg1, arg2), {}, result1, ),
     ( (arg3, arg4), {}, result2, ),
+]
 
 bench.bench(
-    tests, func_groups,
-    n=100_000, sort=('BENCH_SORT' in os.environ)
+    tests=tests,
+    func_groups=func_groups,
+    n=100_000,
+    sort=('BENCH_SORT' in os.environ)
 )
 '''
 
@@ -29,7 +32,7 @@ import time, sys, os
 from typing import Callable, Any
 import statistics
 
-import pp
+from pp import pp
 
 Test = namedtuple('Test', 'args kwargs expected n')
 class NoExpectation:
@@ -53,6 +56,10 @@ def _load_serialised_args(serialised_args):
 
 def timeit_func(func, args, kwargs, expected: object = NoExpectation, n: int = 10_000):
     'Time a function with arguments and return the result, whether it is correct, and the times'
+
+    if os.environ.get('DEBUG'):
+        pp.ppd({'func': func, 'args': args, 'kwargs': kwargs, 'expected': expected, 'n': n})
+
     start, times = 0, Counter()
     # some functions may modify the input arguments, so a new copy is needed for every test
     # "pickle" is used instead of "deepcopy" as it's much faster
@@ -182,6 +189,9 @@ def timeit(n=10_000):
 def bench(tests, func_groups, n: int=10_000, sort: bool=False):
     'Run a series of timed tests on a list of functions'
     s, group_colours = '', ['yellow', 'brightred', 'cyan', 'bold']
+
+    if os.environ.get('DEBUG'):
+        pp.ppd({'tests': tests, 'func_groups': func_groups, 'n': n, 'sort': sort}, indent=None)
     for func_group in func_groups:
         for func in func_group:
             set_function_module(func)
