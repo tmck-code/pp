@@ -3,22 +3,16 @@
 A wee utility that I use to benchmark katas
 author: github.com/tmck-code
 
-
 usage:
-
 
 func_groups = [
     [f1,f2],
     [f3,f4,f5],
     [f6],
 ]
-
 tests = [
-    ( (list(range(10)), 3), {}, [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]], ),
-    ( (range(10), 3), {}, [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]], ),
-    ( (iter(list(range(10))), 3), {}, [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]], ),
-    ( (iter(range(10)), 3), {}, [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]], ),
-]
+    ( (arg1, arg2), {}, result1, ),
+    ( (arg3, arg4), {}, result2, ),
 
 bench.bench(
     tests, func_groups,
