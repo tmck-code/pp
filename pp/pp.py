@@ -15,13 +15,14 @@ STYLES = [
 
 def _json_default(obj: object):
     'Default JSON serializer, supports most main class types'
-    if isinstance(obj, str):       return obj
-    if is_dataclass(obj):          return asdict(obj)
-    if isinstance(obj, datetime):  return obj.isoformat()
-    if hasattr(obj, '__dict__'):   return obj.__dict__
-    if hasattr(obj, '__name__'):   return obj.__name__
-    if hasattr(obj, '__slots__'):  return {k: getattr(obj, k) for k in obj.__slots__}
-    if hasattr(obj, '_asdict'):    return obj._asdict()
+    if   isinstance(obj, str):       return obj             # str
+    elif is_dataclass(obj):          return asdict(obj)     # dataclass
+    elif isinstance(obj, datetime):  return obj.isoformat() # datetime
+    elif hasattr(obj, '__dict__'):   return obj.__dict__    # class
+    elif hasattr(obj, '__name__'):   return obj.__name__    # function
+    elif hasattr(obj, '__slots__'):  return {k: getattr(obj, k) for k in obj.__slots__} # class with slots
+    elif isinstance(obj, tuple) and \
+       hasattr(obj, '_asdict'):      return obj._asdict()   # namedtuple
     return str(obj)
 
 def ppd(d, indent=2, style='dracula', random_style=False):
