@@ -26,7 +26,7 @@ def _json_default(obj: object):
     return str(obj)
 
 def ppd(d, indent=2, style='dracula', random_style=False):
-    'pretty-prints a dict'
+    'pretty-print a dict'
     if random_style:
         style = random.choice(STYLES)
     print(highlight(
@@ -36,15 +36,15 @@ def ppd(d, indent=2, style='dracula', random_style=False):
     ).strip())
 
 def ppj(j, indent=2, style='dracula', random_style=False):
-    'pretty-prints a JSON string'
+    'pretty-print a JSON string'
     ppd(json.loads(j), indent=indent, style=style, random_style=random_style)
 
 def ps(s, style='yellow', random_style=False):
-    'adds color to a string'
+    'add color to a string'
     if random_style:
         style = random.choice(console.dark_colors + console.light_colors)
     return console.colorize(style, s)
 
 def pps(s, style='yellow', random_style=False):
-    'pretty-prints a string'
+    'pretty-print a string'
     print(ps(s, style=style, random_style=random_style))
