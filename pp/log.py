@@ -33,18 +33,9 @@ import json
 import logging
 import sys
 
-LOG_ROOT_NAME = 'root'
+from pp.pp import _json_default
 
-def _json_default(obj: object) -> str:
-    'Default JSON serializer, supports most main class types'
-    if isinstance(obj, str):       return obj
-    if is_dataclass(obj):          return asdict(obj)
-    if isinstance(obj, datetime):  return obj.isoformat()
-    if hasattr(obj, '__dict__'):   return obj.__dict__
-    if hasattr(obj, '__name__'):   return obj.__name__
-    if hasattr(obj, '__slots__'):  return {k: getattr(obj, k) for k in obj.__slots__}
-    if hasattr(obj, '_asdict'):    return obj._asdict()
-    return str(obj)
+LOG_ROOT_NAME = 'root'
 
 class LogFormatter(logging.Formatter):
     'Custom log formatter that formats log messages as JSON, aka "Structured Logging".'

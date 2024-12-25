@@ -1,4 +1,4 @@
-from pp import c
+from pp.colour import c
 
 class TestC:
     def test_ansi_to_rgb(self):

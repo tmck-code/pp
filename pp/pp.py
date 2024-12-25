@@ -15,25 +15,31 @@ STYLES = [
 
 def _json_default(obj: object):
     'Default JSON serializer, supports most main class types'
-    if   isinstance(obj, str):       return obj             # str
+    if   isinstance(obj, str):     return obj             # str
     elif is_dataclass(obj):          return asdict(obj)     # dataclass
     elif isinstance(obj, datetime):  return obj.isoformat() # datetime
-    elif hasattr(obj, '__dict__'):   return obj.__dict__    # class
-    elif hasattr(obj, '__name__'):   return obj.__name__    # function
-    elif hasattr(obj, '__slots__'):  return {k: getattr(obj, k) for k in obj.__slots__} # class with slots
     elif isinstance(obj, tuple) and \
        hasattr(obj, '_asdict'):      return obj._asdict()   # namedtuple
+    elif hasattr(obj, '__name__'):   return obj.__name__    # function
+    elif hasattr(obj, '__slots__'):  return {k: getattr(obj, k) for k in obj.__slots__}
+    # 'class with slots. watch out - namedtuples have __slots__ too
+    elif hasattr(obj, '__dict__'):   return obj.__dict__    # class
     return str(obj)
 
 def ppd(d, indent=2, style='dracula', random_style=False):
     'pretty-print a dict'
     if random_style:
         style = random.choice(STYLES)
-    print(highlight(
-        code      = json.dumps(d, indent=indent, default=_json_default),
-        lexer     = JsonLexer(),
-        formatter = Terminal256Formatter(style=get_style_by_name(style))
-    ).strip())
+    code = json.dumps(d, indent=indent, default=_json_default)
+
+    if style is None:
+        print(code)
+    else:
+        print(highlight(
+            code      = code,
+            lexer     = JsonLexer(),
+            formatter = Terminal256Formatter(style=get_style_by_name(style))
+        ).strip())
 
 def ppj(j, indent=2, style='dracula', random_style=False):
     'pretty-print a JSON string'
