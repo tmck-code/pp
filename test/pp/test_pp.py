@@ -41,7 +41,7 @@ class TestJSONDefault:
         pp.ppd({'a': a}, indent=None, style=None)
 
         captured = capsys.readouterr()
-        assert captured.out.strip() == '{"a": "a"}'
+        assert captured.out.strip() == '{"a": "a()"}'
 
     def test_json_default_slots(self, capsys):
         class A:
