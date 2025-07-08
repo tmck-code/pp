@@ -30,6 +30,7 @@ from datetime import datetime
 import io
 import json
 import logging
+from logging.handlers import  TimedRotatingFileHandler
 import os
 import sys
 
@@ -161,7 +162,7 @@ def getLogger(
         handlers.append(handler)
 
     for flevel, filename in files.items():
-        handler = logging.handlers.TimedRotatingFileHandler(
+        handler = TimedRotatingFileHandler(
             filename, when='midnight', backupCount=7, encoding='utf-8',
         )
         handler.setLevel(flevel)
