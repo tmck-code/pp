@@ -16,13 +16,13 @@ usage examples to initialise a logger:
 usage examples to log messages:
     ```python
     logger.info('This is a basic info message')
-    # {"timestamp": "2024-12-09T15:05:43.904417", "msg": "This is a basic info message", "data": {}}
+    # {"timestamp": "2024-12-09T15:05:43.904417+10:00", "msg": "This is a basic info message", "event": {}}
 
     logger.info('This is an info message', {'key': 'value'})
-    # {"timestamp": "2024-12-09T15:05:43.904600", "msg": "This is an info message", "data": {"key": "value"}}
+    # {"timestamp": "2024-12-09T15:05:43.904600+10:00", "msg": "This is an info message", "event": {"key": "value"}}
 
     logger.debug('This is a debug message', 'arg1', 'arg2', {'key': 'value'})
-    # {"timestamp": "2024-12-09T15:05:43.904749", "msg": "This is a debug message", "data": {"args": ["arg1", "arg2"], "key": "value"}}
+    # {"timestamp": "2024-12-09T15:05:43.904749+10:00", "msg": "This is a debug message", "event": {"args": ["arg1", "arg2"], "key": "value"}}
     ```
 '''
 
