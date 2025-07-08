@@ -26,7 +26,6 @@ usage examples to log messages:
     ```
 '''
 
-from dataclasses import asdict, dataclass, is_dataclass, field
 from datetime import datetime
 import io
 import json
@@ -50,13 +49,13 @@ LOG_ROOT_NAME = 'root'
 
 class LogFormatter(logging.Formatter):
     'Custom log formatter that formats log messages as JSON, aka "Structured Logging".'
-    def __init__(self, *args, defaults: dict = field(default_factory=dict), **kwargs):
+    def __init__(self, defaults: dict = {}):
         '''
         Initializes the log formatter with optional default context.
         - `defaults` is a dictionary of default context values to include in every log message.
         '''
         self.defaults = defaults
-        super().__init__(*args, **kwargs)
+        super().__init__()
 
     def format(self, record) -> str:
         'Formats the log message as JSON.'
@@ -73,9 +72,11 @@ class LogFormatter(logging.Formatter):
         record.msg = json.dumps(
             {
                 'timestamp': datetime.now().isoformat(),
+                'level':     record.levelname,
+                'name':      record.name,
                 'msg':       record.msg,
-                'data':      {'args': args} if args else {} | kwargs or {},
-                'context':   self.defaults or {},
+                'event':     {'args': args} if args else {} | kwargs or {},
+                **({'context': self.defaults} if self.defaults else {}),
             },
             default=_json_default,
         )
@@ -84,10 +85,10 @@ class LogFormatter(logging.Formatter):
 
 
 def _getLogger(
-    name: str,
-    level: int = logging.CRITICAL,
+    name:     str,
+    level:    int                   = logging.CRITICAL,
     handlers: list[logging.Handler] = [],
-    context: dict = field(default_factory=dict),
+    context:  dict                  = {},
 ) -> logging.Logger:
     '''
     Creates a logger with the given name, level, and handlers.
@@ -128,11 +129,11 @@ def _getLogger(
 
 
 def getLogger(
-    name:         str,
-    level:        int             = logging.INFO,
-    stream: io.TextIOBase         = sys.stderr,
-    files:    dict[LogLevel, str] = dict(),
-    context:  dict = field(default_factory=dict),
+    name:     str,
+    level:    int                 = logging.INFO,
+    stream:   io.TextIOBase       = sys.stderr,
+    files:    dict[LogLevel, str] = {},
+    context:  dict                = {},
 ) -> logging.Logger:
     '''
     Creates a logger with the given name, level, and handlers.
