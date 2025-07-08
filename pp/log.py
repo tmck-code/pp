@@ -44,9 +44,6 @@ class LogLevel:
     NOTSET   = logging.NOTSET
 
 
-LOG_ROOT_NAME = 'root'
-
-
 class LogFormatter(logging.Formatter):
     'Custom log formatter that formats log messages as JSON, aka "Structured Logging".'
     def __init__(self, defaults: dict = {}):
@@ -98,7 +95,7 @@ def _getLogger(
     '''
 
     # create the root logger
-    logger = logging.getLogger(LOG_ROOT_NAME)
+    logger = logging.getLogger()
     logger.setLevel(level)
 
     # close/remove any existing handlers
@@ -108,7 +105,7 @@ def _getLogger(
             logger.removeHandler(handler)
 
     # create the logger
-    logger = logging.getLogger(f'{LOG_ROOT_NAME}.{name}')
+    logger = logging.getLogger(name)
     logger.setLevel(level)
 
     # close/remove any existing handlers
