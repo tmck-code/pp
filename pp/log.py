@@ -4,13 +4,13 @@ A module to create loggers with custom handlers and a custom formatter.
 usage examples to initialise a logger:
     ```python
     # 1. initialise logger to stderr:
-    logger = getLogger('my_logger', level=logging.DEBUG, print_stream=sys.stderr)
+    logger = getLogger('my_logger', level=logging.DEBUG, stream=sys.stderr)
 
     # 2. initialise logger to file:
     logger = getLogger('my_logger', level=logging.DEBUG, filename='my_log.log')
 
     # 3. initialise logger to both stderr and file:
-    logger = getLogger('my_logger', level=logging.DEBUG, print_stream=sys.stderr, filename='my_log.log')
+    logger = getLogger('my_logger', level=logging.DEBUG, stream=sys.stderr, files={LogLevel.INFO: 'info.log'})
     ```
 
 usage examples to log messages:
@@ -35,7 +35,18 @@ import sys
 
 from pp.pp import _json_default
 
+class LogLevel:
+    'An enum type for log levels.'
+    CRITICAL = logging.CRITICAL
+    ERROR    = logging.ERROR
+    WARNING  = logging.WARNING
+    INFO     = logging.INFO
+    DEBUG    = logging.DEBUG
+    NOTSET   = logging.NOTSET
+
+
 LOG_ROOT_NAME = 'root'
+
 
 class LogFormatter(logging.Formatter):
     'Custom log formatter that formats log messages as JSON, aka "Structured Logging".'
@@ -56,10 +67,7 @@ class LogFormatter(logging.Formatter):
             {
                 'timestamp': datetime.now().isoformat(),
                 'msg':       record.msg,
-                'data':      {
-                    **({'args': args} if args else {}),
-                    **(kwargs if kwargs else {}),
-                }
+                'data':      {'args': args} if args else {} | kwargs or {}
             },
             default=_json_default,
         )
@@ -75,9 +83,10 @@ def _getLogger(name: str, level: int = logging.CRITICAL, handlers: list[logging.
     - the same log level is applied to all handlers.
     '''
 
-    # create the logger
+    # create the root logger
     logger = logging.getLogger(LOG_ROOT_NAME)
     logger.setLevel(level)
+
     # close/remove any existing handlers
     while logger.handlers:
         for handler in logger.handlers:
@@ -96,7 +105,6 @@ def _getLogger(name: str, level: int = logging.CRITICAL, handlers: list[logging.
 
     # add the new handlers
     for handler in handlers:
-        handler.setLevel(level)
         logger.addHandler(handler)
 
     if logger.handlers:
@@ -106,44 +114,33 @@ def _getLogger(name: str, level: int = logging.CRITICAL, handlers: list[logging.
     return logger
 
 
-@dataclass
-class Logger:
-    '''
-    A class to create a logger with custom handlers and a custom formatter.
-    Logger(name, level, handlers, print_stream, filename)
-    '''
-    name: str
-    level: int = logging.CRITICAL
-    print_stream: io.TextIOBase = field(default=None)
-    filename: str = field(default=None)
-    handlers: list[logging.Handler] = field(init=False, default_factory=list)
-
-    def __post_init__(self, filename: str = None):
-        if self.print_stream:
-            self.handlers.append(logging.StreamHandler(self.print_stream))
-        if self.filename:
-            self.handlers.append(logging.FileHandler(self.filename))
-
-    def getLogger(self) -> logging.Logger:
-        return _getLogger(self.name, self.level, handlers=self.handlers)
-
-    @property
-    def logger(self) -> logging.Logger:
-        return self.getLogger()
-
-
-def getLogger(name: str, level: int = logging.CRITICAL, print_stream: io.TextIOBase = None, filename: str = None) -> logging.Logger:
+def getLogger(
+    name:         str,
+    level:        int             = logging.INFO,
+    stream: io.TextIOBase         = sys.stderr,
+    files:    dict[LogLevel, str] = dict(),
+) -> logging.Logger:
     '''
     Creates a logger with the given name, level, and handlers.
-    - if `print_stream` is provided, the logger will output logs to it.
-    - if `filename` is provided, the logger will output logs to it.
-    - if both are provided, the logger will output logs to both.
-    - if neither are provided, the logger will not output any logs.
+    - `name` is the name of the logger.
+    - `stream` is the output stream for the logger (default is STDERR).
+    - `files` is a dictionary of log levels and filenames for file handlers.
+      - The keys are log levels (e.g., LogLevel.INFO, LogLevel.DEBUG).
+      - The values are the filenames to log to at the corresponding level.
+      - The file handlers will use `TimedRotatingFileHandler` to rotate logs at midnight and keep 7 backups.
+    - `level` is the log level for the logger and all handlers (default is INFO).
     '''
     handlers = []
-    if print_stream:
-        handlers.append(logging.StreamHandler(print_stream))
-    if filename:
-        handlers.append(logging.FileHandler(filename))
+    if stream:
+        handler = logging.StreamHandler(stream)
+        handler.setLevel(level)
+        handlers.append(handler)
+
+    for flevel, filename in files.items():
+        handler = logging.handlers.TimedRotatingFileHandler(
+            filename, when='midnight', backupCount=7, encoding='utf-8',
+        )
+        handler.setLevel(flevel)
+        handlers.append(handler)
 
     return _getLogger(name, level, handlers)
