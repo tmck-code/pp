@@ -30,6 +30,7 @@ from datetime import datetime
 import io
 import json
 import logging
+import os
 import sys
 
 from pp.pp import _json_default
@@ -43,6 +44,8 @@ class LogLevel:
     DEBUG    = logging.DEBUG
     NOTSET   = logging.NOTSET
 
+
+DEFAULT_LOG_LEVEL = LogLevel.INFO
 
 class LogFormatter(logging.Formatter):
     'Custom log formatter that formats log messages as JSON, aka "Structured Logging".'
@@ -127,7 +130,7 @@ def _getLogger(
 
 def getLogger(
     name:     str,
-    level:    int                 = logging.INFO,
+    level:    int                 = -1,
     stream:   io.TextIOBase       = sys.stderr,
     files:    dict[LogLevel, str] = {},
     context:  dict                = {},
@@ -141,7 +144,16 @@ def getLogger(
       - The values are the filenames to log to at the corresponding level.
       - The file handlers will use `TimedRotatingFileHandler` to rotate logs at midnight and keep 7 backups.
     - `level` is the log level for the logger and all handlers (default is INFO).
+        - if `level` is not provided, it will check the environment variable `LOG_LEVEL` and use its value if it exists
+        - otherwise it defaults to `LogLevel.INFO`.
     '''
+
+    if level == -1:
+        if 'LOG_LEVEL' in os.environ:
+            level = getattr(logging, os.environ['LOG_LEVEL'].upper())
+        else:
+            level = DEFAULT_LOG_LEVEL
+
     handlers = []
     if stream:
         handler = logging.StreamHandler(stream)
