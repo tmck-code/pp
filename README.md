@@ -7,7 +7,19 @@ terminal/cli/python helpers for colour and pretty-printing
 
 ---
 
+## `pp`
+
+
+https://github.com/user-attachments/assets/cce8f690-e411-459f-a04f-8e9bef533e4a
+
+
+---
+
 ## `bench`
+
+
+https://github.com/user-attachments/assets/4af823b0-8d18-4086-9754-c76c65b66898
+
 
 ```python
 from pp import bench
@@ -23,29 +35,4 @@ bench.bench(
     func_groups=[ [list] ],
     n=100
 )
-```
-
-https://github.com/user-attachments/assets/4af823b0-8d18-4086-9754-c76c65b66898
-
----
-
-## `pp`
-
-```python
-from pp import pp
-
-# Pretty-print a dict
-pp.ppd([[1,2,3], [4,5,6], [7,8,9]])
-# [
-#   [1, 2, 3],
-#   [4, 5, 6],
-#   [7, 8, 9]
-# ]
-
-# Pretty-print a JSON string
-pp.ppj('{"a": 1, "b": 2}')
-# {
-#   "a": 1,
-#   "b": 2
-# }
 ```
