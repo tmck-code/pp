@@ -25,6 +25,10 @@ bench.bench(
 )
 ```
 
+https://github.com/user-attachments/assets/4af823b0-8d18-4086-9754-c76c65b66898
+
+---
+
 ## `pp`
 
 ```python
