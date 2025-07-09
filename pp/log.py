@@ -132,7 +132,7 @@ def _getLogger(
 def getLogger(
     name:     str,
     level:    int                 = -1,
-    stream:   io.TextIOBase       = sys.stderr,
+    stream:   io.TextIOBase       = sys.stdout,
     files:    dict[LogLevel, str] = {},
     context:  dict                = {},
 ) -> logging.Logger:
