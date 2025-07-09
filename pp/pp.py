@@ -9,10 +9,10 @@ from pygments.lexers import JsonLexer, OutputLexer
 from pygments.formatters import Terminal256Formatter
 from pygments.styles import get_style_by_name, get_all_styles
 
-STYLES = [
-    'dracula', 'fruity', 'gruvbox-dark', 'gruvbox-light', 'lightbulb', 'material', 'one-dark',
-    'perldoc', 'native', 'tango',
-]
+STYLES = (
+    'dracula', 'fruity', 'gruvbox-dark', 'gruvbox-light', 'lightbulb', 'material', 'native',
+    'one-dark', 'perldoc', 'tango',
+)
 
 def _json_default(obj: object):
     'Default JSON serializer, supports most main class types'
@@ -28,7 +28,7 @@ def _json_default(obj: object):
     elif hasattr(obj, '__dict__'):      return obj.__dict__ # class
     return str(obj)
 
-def ppd(d, indent=2, style='dracula', random_style=False):
+def ppd(d: dict, indent: int=2, style: str='dracula', random_style: bool=False) -> None:
     'pretty-print a dict'
     if random_style:
         style = random.choice(STYLES)
@@ -43,16 +43,16 @@ def ppd(d, indent=2, style='dracula', random_style=False):
             formatter = Terminal256Formatter(style=get_style_by_name(style))
         ).strip())
 
-def ppj(j, indent=2, style='dracula', random_style=False):
+def ppj(j: str, indent: int=2, style: str='dracula', random_style: bool=False) -> None:
     'pretty-print a JSON string'
     ppd(json.loads(j), indent=indent, style=style, random_style=random_style)
 
-def ps(s, style='yellow', random_style=False):
+def ps(s: str, style: str='yellow', random_style: bool=False) -> str:
     'add color to a string'
     if random_style:
         style = random.choice(console.dark_colors + console.light_colors)
     return console.colorize(style, s)
 
-def pps(s, style='yellow', random_style=False):
+def pps(s: str, style: str='yellow', random_style: bool=False) -> None:
     'pretty-print a string'
     print(ps(s, style=style, random_style=random_style))
