@@ -28,7 +28,7 @@ def _json_default(obj: object):
     elif hasattr(obj, '__dict__'):      return obj.__dict__ # class
     return str(obj)
 
-def ppd(d: dict, indent: int=2, style: str='dracula', random_style: bool=False) -> None:
+def ppd(d: dict, indent: int=None, style: str='dracula', random_style: bool=False) -> None:
     'pretty-print a dict'
     if random_style:
         style = random.choice(STYLES)
@@ -43,7 +43,7 @@ def ppd(d: dict, indent: int=2, style: str='dracula', random_style: bool=False) 
             formatter = Terminal256Formatter(style=get_style_by_name(style))
         ).strip())
 
-def ppj(j: str, indent: int=2, style: str='dracula', random_style: bool=False) -> None:
+def ppj(j: str, indent: int=None, style: str='dracula', random_style: bool=False) -> None:
     'pretty-print a JSON string'
     ppd(json.loads(j), indent=indent, style=style, random_style=random_style)
 
