@@ -14,15 +14,15 @@ STYLES = [
     'perldoc', 'native', 'tango',
 ]
 
+def _isnamedtuple(obj: object):
+    return isinstance(obj, tuple) and hasattr(obj, '_fields')
+
 def _normalise(obj: object):
-    'step through obj and normalise namedtuples to "NTWithDict" objects'
+    'step through obj and normalise namedtuples to dicts'
     if isinstance(obj, dict): return {k: _normalise(v) for k, v in obj.items()}
     if isinstance(obj, list): return [_normalise(i) for i in obj]
     if _isnamedtuple(obj):    return obj._asdict()
     return obj
-
-def _isnamedtuple(obj: object):
-    return isinstance(obj, tuple) and hasattr(obj, '_fields')
 
 def _json_default(obj: object):
     'Default JSON serializer, supports most main class types'
