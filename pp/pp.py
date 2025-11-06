@@ -1,5 +1,5 @@
-from dataclasses import asdict, is_dataclass
-from datetime import datetime, timedelta
+from dataclasses import asdict, is_dataclass, dataclass
+from datetime import datetime
 import json
 import random
 from types import FunctionType
@@ -14,22 +14,32 @@ STYLES = (
     'one-dark', 'perldoc', 'tango',
 )
 
+def _isnamedtuple(obj: object):
+    return isinstance(obj, tuple) and hasattr(obj, '_fields')
+
+def _normalise(obj: object):
+    'step through obj and normalise namedtuples to dicts'
+    if isinstance(obj, dict): return {k: _normalise(v) for k, v in obj.items()}
+    if isinstance(obj, list): return [_normalise(i) for i in obj]
+    if _isnamedtuple(obj):    return obj._asdict()
+    return obj
+
 def _json_default(obj: object):
     'Default JSON serializer, supports most main class types'
     if   isinstance(obj, str):          return obj # str
+    elif isinstance(obj, list):         return [_json_default(i) for i in obj]
     elif is_dataclass(obj):             return asdict(obj) # dataclass
     elif isinstance(obj, datetime):     return obj.isoformat() # datetime
-    elif isinstance(obj, tuple) and \
-       hasattr(obj, '_asdict'):         return obj._asdict() # namedtuple
     elif isinstance(obj, FunctionType): return f'{obj.__name__}()' # function
-    elif hasattr(obj, '__slots__'):     return {k: getattr(obj, k) for k in obj.__slots__}
-                                        # 'class with slots. watch out - namedtuples have __slots__ too
+    elif hasattr(obj, '__slots__'):     return {k: getattr(obj, k) for k in obj.__slots__} # class with slots.
     elif hasattr(obj, '__name__'):      return obj.__name__ # function/class name
     elif hasattr(obj, '__dict__'):      return obj.__dict__ # class
     return str(obj)
 
-def ppd(d: dict, indent: int=None, style: str='dracula', random_style: bool=False) -> None:
+def ppd(d_obj, indent=2, style='dracula', random_style=False):
     'pretty-print a dict'
+    d = _normalise(d_obj) # convert any namedtuples to dicts
+
     if random_style:
         style = random.choice(STYLES)
     code = json.dumps(d, indent=indent, default=_json_default)
